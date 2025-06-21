@@ -13,10 +13,23 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Configuração CORS mais robusta para web
+const allowedOrigins = [
+  'http://localhost:3000', 
+  'http://localhost:3001',
+  'https://gdm-frontend.onrender.com', // Exemplo do Render
+  'https://gdm-separador-pdf.vercel.app', // Exemplo do Vercel
+  'https://tiny-axolotl-6a8f46.netlify.app' // SEU SITE NO NETLIFY
+];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://gdm-separador-pdf.onrender.com', 'https://gdm-separador-pdf.vercel.app']
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: function (origin, callback) {
+    // Permite requisições sem 'origin' (ex: Postman, apps mobile) ou da lista de permissões
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
