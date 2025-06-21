@@ -17,7 +17,7 @@
     "pdf-lib": "^1.17.1",
     "cors": "^2.8.5",
     "pdf-parse": "^1.1.1",
-    "json2csv": "^6.0.0",
+    "json2csv": "^5.0.7",
     "exceljs": "^4.4.0",
     "archiver": "^6.0.1"
   },
