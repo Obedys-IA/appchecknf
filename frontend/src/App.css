@@ -1,0 +1,175 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #1A472A; /* Cor de fundo do logo */
+}
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 120px;
+  width: 120px;
+  margin-bottom: 1rem;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #1A472A; /* Cor de fundo do logo */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 1.5vmin);
+  color: #F0EAD6; /* Cor do texto e ícone do logo */
+  padding: 2rem;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 2.5rem;
+}
+
+p {
+  color: #555;
+  margin-top: 0;
+}
+
+.App-header p.subtitle {
+  color: #c8c5be; /* Tom mais claro para melhor visualização */
+}
+
+.upload-section {
+  margin: 2rem 0;
+  padding: 2rem;
+  border: 2px dashed #F0EAD6;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+input[type="file"] {
+  display: none; /* Esconde o input original */
+}
+
+.custom-file-upload {
+  border: 1px solid #F0EAD6;
+  display: inline-block;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  background-color: transparent;
+  color: #F0EAD6;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.custom-file-upload:hover {
+  background-color: #F0EAD6;
+  color: #1A472A;
+}
+
+button, .download-button {
+  background-color: #F0EAD6;
+  color: #1A472A;
+  font-weight: bold;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+
+button:hover, .download-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+button:disabled {
+  background-color: #a39e8e;
+  color: #6b685e;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.status {
+  margin-top: 1.5rem;
+  font-weight: 500;
+  min-height: 24px;
+  color: #dcd9d3; /* Tom mais claro para melhor visualização */
+}
+
+.results-section {
+  margin-top: 2rem;
+  text-align: left;
+  width: 90%;
+  max-width: 800px;
+  background-color: rgba(0,0,0, 0.2);
+  padding: 2rem;
+  border-radius: 10px;
+}
+
+.results-section h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.results-section ul {
+  list-style-type: none;
+  padding: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-bottom: 2rem;
+  background-color: rgba(0,0,0, 0.1);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.results-section li {
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+
+.results-section .download-buttons-container {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.results-section .download-button {
+  flex: 1; /* Faz os botões ocuparem o mesmo espaço */
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
