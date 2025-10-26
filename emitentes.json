@@ -1,0 +1,37 @@
+[
+  {
+    "cnpj": "44.459.499/0002-56",
+    "razao_social": "TRIELO COMERCIO, EXPORTACAO E IMPORTACAO DE ALIMENTOS LTDA",
+    "nome_fantasia": "TRIELO CD BA",
+    "created_at": "2025-10-21 23:26:33.572127+00",
+    "updated_at": "2025-10-21 23:26:33.572127+00"
+  },
+  {
+    "cnpj": "44.459.499/0003-37",
+    "razao_social": "TRIELO COMERCIO, EXPORTACAO E IMPORTACAO DE ALIMENTOS LTDA",
+    "nome_fantasia": "TRIELO CEASA BA",
+    "created_at": "2025-10-21 23:26:33.572127+00",
+    "updated_at": "2025-10-21 23:26:33.572127+00"
+  },
+  {
+    "cnpj": "44.459.499/0004-18",
+    "razao_social": "TRIELO COMERCIO, EXPORTACAO E IMPORTACAO DE ALIMENTOS LTDA",
+    "nome_fantasia": "TRIELO ITAITINGA CE",
+    "created_at": "2025-10-21 23:26:33.572127+00",
+    "updated_at": "2025-10-21 23:26:33.572127+00"
+  },
+  {
+    "cnpj": "44.459.499/0005-07",
+    "razao_social": "TRIELO COMERCIO, EXPORTACAO E IMPORTACAO DE ALIMENTOS LTDA",
+    "nome_fantasia": "TRIELO CEASA PE",
+    "created_at": "2025-10-21 23:26:33.572127+00",
+    "updated_at": "2025-10-21 23:26:33.572127+00"
+  },
+  {
+    "cnpj": "44.459.499/0006-80",
+    "razao_social": "TRIELO COMERCIO, EXPORTACAO E IMPORTACAO DE ALIMENTOS LTDA",
+    "nome_fantasia": "TRIELO PAULISTA PE",
+    "created_at": "2025-10-21 23:26:33.572127+00",
+    "updated_at": "2025-10-21 23:26:33.572127+00"
+  }
+]

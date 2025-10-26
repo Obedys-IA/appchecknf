@@ -1,0 +1,1538 @@
+[
+  {
+    "cnpj": "00.063.960/0048-64",
+    "razao_social": "WALMART BRASIL LTDA",
+    "nome_fantasia": "Sams Pituba",
+    "rede": "Sams",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.063.960/0561-55",
+    "razao_social": "WMB SUPERMERCADOS DO BRASIL LTDA.",
+    "nome_fantasia": "Sams Aracaju",
+    "rede": "Sams",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.063.960/0574-70",
+    "razao_social": "WMB SUPERMERCADOS DO BRASIL LTDA",
+    "nome_fantasia": "Sams Bonoco",
+    "rede": "Sams",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.063.960/0578-01",
+    "razao_social": "WMB SUPERMERCADOS DO BRASIL LTDA",
+    "nome_fantasia": "Sams Lauro De Freitas",
+    "rede": "Sams",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.063.960/0600-04",
+    "razao_social": "WMB SUPERMERCADOS DO BRASIL LTDA.",
+    "nome_fantasia": "Sams Feira De Santana",
+    "rede": "Sams",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.658.059/0001-71",
+    "razao_social": "PONTO VERDE COMERCIO DE ALIMENTOS LTDA",
+    "nome_fantasia": "Ponto Verde Sete Portas",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.658.059/0002-52",
+    "razao_social": "PONTO VERDE COMERCIO DE ALIMENTOS LTDA",
+    "nome_fantasia": "Ponto Verde Iapi",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.658.059/0003-33",
+    "razao_social": "PONTO VERDE COMERCIO DE ALIMENTOS LTDA",
+    "nome_fantasia": "Ponto Verde Vila Laura",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.813.880/0001-15",
+    "razao_social": "MASANI COM DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Masani Com",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "00.889.627/0001-45",
+    "razao_social": "BONTEMPO SUPERMERCADO LTDA",
+    "nome_fantasia": "Bontempo Supermercados",
+    "rede": "Outros",
+    "uf": "PE",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "02.212.937/0006-60",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Stella Missionario Otto",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0007-41",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Piata Otavio Mangabeira",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0008-22",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Buraquinho",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0009-03",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Tororo",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0010-47",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Graca",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0011-28",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Barra",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0012-09",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Pituba Rua Ceara",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0013-90",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Patamares Luis Viana",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0014-70",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Praia Do Forte",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0017-13",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Stella Capitao Melo",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0018-02",
+    "razao_social": "SERRANA EMPREENDIMENTOS E PARTICIPACOES LTDA",
+    "nome_fantasia": "Hiperideal Armacao Av Simon",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0019-85",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Canela",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0021-08",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Vila Laura",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0022-80",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Jardins ACM",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0023-61",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Itaigara",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0024-42",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Pituba Manoel Dias",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0025-23",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Jardim Apipema",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0026-04",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Lj Piata Orlando Gomes",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0027-95",
+    "razao_social": "SERRANA EMPREENDIMENTOS E PARTICIPACOES LTDA",
+    "nome_fantasia": "Hiperideal - Vitoria",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0028-76",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Parque Shopping Lauro",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0029-57",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Orla Octavio Mang.",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0030-90",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Guarajuba",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0031-71",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Patamares Ibirapitanga",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0032-52",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Caminho Das Arvores",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0033-33",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiper Ideal Cd",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0034-14",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Horto Vasco Da Gama",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0036-86",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Amazonas",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "02.212.937/0042-24",
+    "razao_social": "HIPERIDEAL EMPREENDIMENTOS LTDA",
+    "nome_fantasia": "Hiperideal Feira De Santana",
+    "rede": "Hiperideal",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.451.160/0001-45",
+    "razao_social": "COMERCIAL DE ALIMENTOS FLOR DA CHAPADA LTDA",
+    "nome_fantasia": "Flor Da Chapada",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0001-50",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS S",
+    "nome_fantasia": "Dist Sao Roque Sta Monica",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0002-30",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA",
+    "nome_fantasia": "São Roque Castro Alves",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0004-00",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA",
+    "nome_fantasia": "Dist Sao Roque Mangabeira",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0005-83",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA",
+    "nome_fantasia": "Dist Sao Roque Sim",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0011-21",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA",
+    "nome_fantasia": "Dist Sao Roque Calumbi",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0013-93",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA",
+    "nome_fantasia": "Dist Sao Roque Conceicao",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0014-74",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA",
+    "nome_fantasia": "Sao Roque Artemia Pires",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.705.630/0015-55",
+    "razao_social": "DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA",
+    "nome_fantasia": "São Roque Av Getulio Vargas",
+    "rede": "Dist Sao Roque",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.995.515/0231-08",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Juazeiro",
+    "rede": "Mateus",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "03.995.515/0237-01",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Jose Conrado De Araujo",
+    "rede": "Mateus",
+    "uf": "SE",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.995.515/0240-07",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Teixeira De Freitas",
+    "rede": "Mateus",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.995.515/0244-22",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Conquista",
+    "rede": "Mateus",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.995.515/0246-94",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Jacobina",
+    "rede": "Mateus",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "03.995.515/0248-56",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Porto Seguro",
+    "rede": "Mateus",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.995.515/0258-28",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Conceicao Do Coite",
+    "rede": "Mateus",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "03.995.515/0271-03",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Da Gloria",
+    "rede": "Mateus",
+    "uf": "SE",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "03.995.515/0325-22",
+    "razao_social": "MATEUS SUPERMERCADOS S.A.",
+    "nome_fantasia": "Mateus Aracaju Santa Monica",
+    "rede": "Mateus",
+    "uf": "SE",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "04.136.442/0001-10",
+    "razao_social": "SUPERMERCADO BOMBOM LTDA",
+    "nome_fantasia": "Sup Bombom Estancia",
+    "rede": "Bombom",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "04.136.442/0002-00",
+    "razao_social": "SUPERMERCADO BOMBOM LTDA",
+    "nome_fantasia": "Sup Bombom Lagarto",
+    "rede": "Bombom",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "04.136.442/0003-82",
+    "razao_social": "SUPERMERCADO BOMBOM LTDA",
+    "nome_fantasia": "Sup Bombom Aracaju",
+    "rede": "Bombom",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "04.462.862/0001-97",
+    "razao_social": "SUPERMERCADO JHONES LTDA",
+    "nome_fantasia": "Supermercado Jhones",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "04.940.750/0023-00",
+    "razao_social": "PERBONI S/A",
+    "nome_fantasia": "Perboni Juazeiro Ba",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "05.370.733/0001-31",
+    "razao_social": "FRUTOS DA TERRA MINIMERCADO LTDA - ME",
+    "nome_fantasia": "Frutos Da Terra",
+    "rede": "Outros",
+    "uf": "PE",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "05.743.186/0001-92",
+    "razao_social": "J MASCARENHAS ASSIS LTDA",
+    "nome_fantasia": "Supermercado Jl",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "06.057.223/0299-00",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Norte",
+    "rede": "Assai",
+    "uf": "SE",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0313-01",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Jequie",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0314-84",
+    "razao_social": "SENDAS DISTRIBUIDORA",
+    "nome_fantasia": "Assai Feira Sobradinho",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0315-65",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Juazeiro",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "06.057.223/0322-94",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Paripe",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0324-56",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Lauro De Freitas",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0361-09",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Calcada",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0364-43",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Porto",
+    "rede": "Assai",
+    "uf": "SE",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0381-44",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Pau Da Lima",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0383-06",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Camacari",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0404-75",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Sul",
+    "rede": "Assai",
+    "uf": "SE",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0406-37",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Cidade Nova",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0407-18",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Sr Do Bonfim",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "06.057.223/0424-19",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Mussurunga",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0451-91",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Tomba",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0470-54",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Barris",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0477-20",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Petrolina",
+    "rede": "Assai",
+    "uf": "PE",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "06.057.223/0478-01",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Socorro",
+    "rede": "Assai",
+    "uf": "SE",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0483-79",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Cabula",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0484-50",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Vasco Da Gama",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0518-33",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Inacio Barbosa",
+    "rede": "Assai",
+    "uf": "SE",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0541-82",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Paralela",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.057.223/0552-35",
+    "razao_social": "SENDAS DISTRIBUIDORA S/A",
+    "nome_fantasia": "Assai Luis Anselmo",
+    "rede": "Assai",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "06.337.087/0001-73",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LT",
+    "nome_fantasia": "Rmix Simoes Filho",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0002-54",
+    "razao_social": "RMIX COMERC DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Pituba",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0003-35",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LT",
+    "nome_fantasia": "Rmix Imbui",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0004-16",
+    "razao_social": "RMIX COMERCIO GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Alphaville 1",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0005-05",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Itapua",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0007-69",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Buraquinho",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0008-40",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Horto",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0009-20",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Vitoria",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0010-64",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Pituba",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0011-45",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Ondina",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0015-79",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Rmix Stella Maris",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0016-50",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Redemix Chame Chame",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "06.337.087/0017-30",
+    "razao_social": "RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Redemix Rio Vermelho",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "07.348.911/0001-53",
+    "razao_social": "COGEALI COM DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Cogeali Paripe",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "07.348.911/0002-34",
+    "razao_social": "COAGELI - COMERCIAL DE GENEROS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Coageli Lj 2 Centro",
+    "rede": "Redemix",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "07.488.144/0009-35",
+    "razao_social": "MEGGA DISTRIBUIDORA LTDA",
+    "nome_fantasia": "Megga Aracaju",
+    "rede": "Outros",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "07.803.111/0001-85",
+    "razao_social": "DISTRIBUIDORA DE ALIMENTOS NORTE LTDA",
+    "nome_fantasia": "Cdp Cd Monte Libano",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "08.473.979/0001-27",
+    "razao_social": "JOSE ORICELIO FURTADO ME",
+    "nome_fantasia": "Feirao Das Frutas Atras Da Banca",
+    "rede": "Feirao Das Frutas",
+    "uf": "PE",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "08.473.979/0002-08",
+    "razao_social": "HORTIFRUTI FEIRAO DAS FRUTAS LTDA",
+    "nome_fantasia": "Feirao Das Frutas Maria Auxiliadora",
+    "rede": "Feirao Das Frutas",
+    "uf": "PE",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "08.957.752/0001-57",
+    "razao_social": "DELI E CIA DELICATESSEN LTDA",
+    "nome_fantasia": "Deli E Cia Graca",
+    "rede": "Deli E Cia",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "09.081.924/0005-68",
+    "razao_social": "RF SUPERMERCADO BRASIL LTDA",
+    "nome_fantasia": "Centro De Distribuicao Brasil",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "09.506.050/0002-09",
+    "razao_social": "JUNIOR E OLIVEIRA LTDA",
+    "nome_fantasia": "Armazem Cecilio Mota",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "11.965.515/0008-19",
+    "razao_social": "PERINI COMERCIAL DE ALIMENTOS LTDA",
+    "nome_fantasia": "Perini Graca",
+    "rede": "Perini",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "11.965.515/0009-08",
+    "razao_social": "PERINI COMERCIAL DE ALIMENTOS LTDA",
+    "nome_fantasia": "Perini Pituba",
+    "rede": "Perini",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "12.138.732/0003-93",
+    "razao_social": "ROSELLY FERREIRA SALES DA SILVA LTDA",
+    "nome_fantasia": "Roselly Ferreira Sales Da Silva Ltda",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "21.553.781/0001-11",
+    "razao_social": "PGA COMERCIO ATACADISTA DE FRUTAS E VERDURAS EIRELI",
+    "nome_fantasia": "Pga Comercio Atacadista De Frutas E Verd",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "23.439.441/0058-25",
+    "razao_social": "ARMAZEM MATEUS S.A.",
+    "nome_fantasia": "Mateus Cd - Feira De Santana/Ba",
+    "rede": "Mateus",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "23.793.817/0001-60",
+    "razao_social": "GRAL PANIFICACAO EIRELI",
+    "nome_fantasia": "Gral Paniville",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "24.333.585/0001-20",
+    "razao_social": "JNS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA",
+    "nome_fantasia": "Mercadinho Economico",
+    "rede": "Outros",
+    "uf": "PE",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "28.548.486/0014-30",
+    "razao_social": "MULTICOM ATACADO E VAREJO S/A",
+    "nome_fantasia": "Economart Vitoria Da Conquista",
+    "rede": "Economart",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "28.548.486/0021-60",
+    "razao_social": "MULTICOM ATACADO E VAREJO S/A",
+    "nome_fantasia": "Economart Jequie",
+    "rede": "Economart",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "28.548.486/0024-02",
+    "razao_social": "MULTICOM ATACADO E VAREJO S/A",
+    "nome_fantasia": "Economart Feira De Santana",
+    "rede": "Economart",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "29.590.340/0001-00",
+    "razao_social": "GA INDUSTRIA E COMERCIO DE ALIMENTOS LTDA",
+    "nome_fantasia": "GA Paris Delicatessen",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "31.432.054/0001-50",
+    "razao_social": "LWA COMERCIAL LTDA",
+    "nome_fantasia": "Massimo Luzia",
+    "rede": "Massimo",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "31.432.054/0002-30",
+    "razao_social": "LWA COMERCIAL LTDA",
+    "nome_fantasia": "Massimo Farolandia",
+    "rede": "Massimo",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "31.432.054/0005-83",
+    "razao_social": "LWA COMERCIAL LTDA",
+    "nome_fantasia": "Massimo - Centro",
+    "rede": "Massimo",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "31.977.294/0001-30",
+    "razao_social": "SUPERMERCADO BOCA DO RIO EIRELI",
+    "nome_fantasia": "Cdp Boca Do Rio Loja 07",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "34.811.344/0001-00",
+    "razao_social": "EXITO SUPERMERCADO LTDA",
+    "nome_fantasia": "Exito Supermercado",
+    "rede": "Outros",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "36.613.171/0001-33",
+    "razao_social": "SETE PORTAS SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cdp Sete Portas Loja 09",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "39.303.338/0001-58",
+    "razao_social": "GRAN REALIZACOES LTDA",
+    "nome_fantasia": "Gran Hortifruti",
+    "rede": "Outros",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "39.346.861/0001-61",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "Gbarbosa Cd Sergipe",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0023-77",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "GBarbosa J. C. De Araujo",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0033-49",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "GBarbosa Francisco Porto",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0040-78",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A",
+    "nome_fantasia": "Gbarbosa Jardins",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0043-10",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "Gbarbosa Sao Cristovao",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0047-44",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 017 Feira De Santana",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0048-25",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 015 Feira De Santana",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0052-01",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 038 Alagoinhas",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0056-35",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 037 Alagoinhas",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0059-88",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 029 Brotas",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0070-93",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 016 Feira De Santana",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0072-55",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "Gbarbosa Hiper Sul",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0078-40",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 035 Costa Azul",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0103-96",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A",
+    "nome_fantasia": "GBarbosa Farolandia",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0111-04",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 074 Sobradinho",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0113-68",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 076 Tomba",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0116-00",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "GBarbosa - Rio Mar",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0138-16",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "GBarbosa Iguatemi",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0143-83",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 108 Lauro De Freitas",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0144-64",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 112 Vitoria Da Conquista",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0182-90",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "GBarbosa Juazeiro Santo Antonio",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "39.346.861/0194-23",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "GBarbosa Juazeiro Centro",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "39.346.861/0196-95",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 139 Vitoria Da Conquista",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0364-33",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "Gbarbosa Cd Bahia",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0415-18",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 274 Guarajuba",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0432-19",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL SA",
+    "nome_fantasia": "Gbarbosa 302 Horto Bela Vista",
+    "rede": "G Barbosa",
+    "uf": "BA",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.346.861/0451-81",
+    "razao_social": "CENCOSUD BRASIL COMERCIAL S.A.",
+    "nome_fantasia": "Gbarbosa Luzia",
+    "rede": "G Barbosa",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "39.869.867/0001-13",
+    "razao_social": "SUPERMERCADO CATU LTDA",
+    "nome_fantasia": "Cdp Catu Loja 12",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.506.193/0001-60",
+    "razao_social": "KI DISTRIBUIDORA LTDA",
+    "nome_fantasia": "Ki Distribuidora E Atacado",
+    "rede": "Outros",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "43.941.941/0002-13",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cdp Armacao Stiep Loja 14",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0004-85",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cesta Do Povo Brotas",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0006-47",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cdp Super Centro Mata Loja 10",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0007-28",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cdp Alagoinhas Loja 11",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0013-76",
+    "razao_social": "CESTA DO POVO RODOVIARIA",
+    "nome_fantasia": "Cdp Rodoviaria Loja 17",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0014-57",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cesta Do Povo Boca Do Rio",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0016-19",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cdp Centro - Sede",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0017-08",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cdp Genaro Dias Davila",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "43.941.941/0018-80",
+    "razao_social": "CDP SUPERMERCADOS LTDA",
+    "nome_fantasia": "Cdp Centro Dias Davila",
+    "rede": "Cesta Do Povo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "44.069.669/0001-05",
+    "razao_social": "HIPER CARNE BARRA LTDA",
+    "nome_fantasia": "Hiper Carnes Barra Dos Coqueiros",
+    "rede": "Hipercarnes",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "50.747.044/0001-58",
+    "razao_social": "SUPERMERCADO JABOTIANA LTDA",
+    "nome_fantasia": "Hiper Carne Jabotiana",
+    "rede": "Hipercarnes",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "50.911.223/0001-89",
+    "razao_social": "MEL DISTRIBUIDORA LTDA",
+    "nome_fantasia": "Mel Distribuidora",
+    "rede": "Outros",
+    "uf": "SE",
+    "vendedor": "Vinicius"
+  },
+  {
+    "cnpj": "73.849.952/0001-58",
+    "razao_social": "ATAKAREJO DIST DE ALIMENTOS E BEBIDAS EI",
+    "nome_fantasia": "Atakarejo Iguatemi",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0002-39",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Boca Do Rio",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0003-10",
+    "razao_social": "ATAKAREJO DIST DE ALIMENTOS E BEBIDAS EI",
+    "nome_fantasia": "Atakarejo Lauro",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0009-05",
+    "razao_social": "ATAKAREJO DIST DE ALIMENTOS E BEBIDAS",
+    "nome_fantasia": "Atakarejo Piata",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0012-00",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Alagoinha",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0013-91",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Camacari",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0014-72",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Simoes Filho",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0015-53",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Pernambues",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0016-34",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Feira De Santana",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0017-15",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Salvador",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0019-87",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Baixa De Quintas",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0021-00",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Cd Simoes Filho",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0029-59",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Patamares",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0031-73",
+    "razao_social": "ATAKAREJO ITACIMIRIM",
+    "nome_fantasia": "Atakarejo Itacimirim",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0032-54",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Vasco",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0034-16",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Ilha",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0036-88",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Vitoria Da Conquista",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0039-20",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Pinto De Aguiar",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0044-98",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Aracaju",
+    "rede": "Atakarejo",
+    "uf": "SE",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0047-30",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Sao Goncalo Dos Campos",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "73.849.952/0050-36",
+    "razao_social": "ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A",
+    "nome_fantasia": "Atakarejo Cd Vitoria Da Conquista",
+    "rede": "Atakarejo",
+    "uf": "BA",
+    "vendedor": "Ricardo"
+  },
+  {
+    "cnpj": "75.315.333/0086-06",
+    "razao_social": "ATACADAO S.A",
+    "nome_fantasia": "Atac Sao Bernardo",
+    "rede": "Atacadão",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "75.315.333/0165-36",
+    "razao_social": "ATACADAO S.A",
+    "nome_fantasia": "Atac Camacari",
+    "rede": "Atacadão",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  },
+  {
+    "cnpj": "75.315.333/0244-74",
+    "razao_social": "ATACADAO S.A.",
+    "nome_fantasia": "Atac Petrolina",
+    "rede": "Atacadão",
+    "uf": "PE",
+    "vendedor": "Antonio"
+  },
+  {
+    "cnpj": "93.209.765/0500-50",
+    "razao_social": "WMS SUPERMERCADOS DO BRASIL LTDA.",
+    "nome_fantasia": "Maxxi Camaçari",
+    "rede": "Atacadão",
+    "uf": "BA",
+    "vendedor": "Nixon"
+  }
+]
