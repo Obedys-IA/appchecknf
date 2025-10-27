@@ -6,7 +6,7 @@ import { Settings, Database, Mail, FileText, Users, Save, Upload } from 'lucide-
 import { useAuth } from '../contexts/AuthContext';
 
 const Configuracoes = () => {
-  const { user } = useAuth();
+  const { userData } = useAuth();
   const [loading, setLoading] = useState(false);
   const [configuracoes, setConfiguracoes] = useState({
     // Configurações gerais
@@ -126,8 +126,8 @@ const Configuracoes = () => {
   };
 
   // Verificar permissões
-  const isAdmin = user?.tipo === 'administrador';
-  const isGerencia = user?.tipo === 'gerencia';
+  const isAdmin = userData?.tipo === 'administrador';
+  const isGerencia = userData?.tipo === 'gerencia';
   const canManageSystem = isAdmin || isGerencia;
 
   if (!canManageSystem) {

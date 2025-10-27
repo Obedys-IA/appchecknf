@@ -6,7 +6,7 @@ import { User, Mail, Phone, Calendar, Save, Eye, EyeOff, Edit, Building, Lock } 
 import { useAuth } from '../contexts/AuthContext';
 
 const Perfil = () => {
-  const { user, updateUser } = useAuth();
+  const { userData, updateUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,15 +23,15 @@ const Perfil = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (userData) {
       setFormData({
-        nome: user.nome || '',
-        email: user.email || '',
-        telefone: user.telefone || '',
-        empresa: user.empresa || ''
+        nome: userData.nome || '',
+        email: userData.email || '',
+        telefone: userData.telefone || '',
+        empresa: userData.empresa || ''
       });
     }
-  }, [user]);
+  }, [userData]);
 
   const handleInputChange = (campo, valor) => {
     setFormData(prev => ({
@@ -192,10 +192,10 @@ const Perfil = () => {
               <User className="w-10 h-10 text-gray-500" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold">{user.nome}</h3>
-              <p className="text-gray-600">{user.email}</p>
+              <h3 className="text-xl font-semibold">{userData.nome}</h3>
+              <p className="text-gray-600">{userData.email}</p>
               <div className="mt-2">
-                {getTipoUsuarioBadge(user.tipo)}
+                {getTipoUsuarioBadge(userData.tipo)}
               </div>
             </div>
           </div>
@@ -361,7 +361,7 @@ const Perfil = () => {
             <div>
               <label className="text-sm font-medium text-gray-700">Tipo de Usuário</label>
               <div className="mt-1">
-                {getTipoUsuarioBadge(user.tipo)}
+                {getTipoUsuarioBadge(userData.tipo)}
               </div>
             </div>
             <div>

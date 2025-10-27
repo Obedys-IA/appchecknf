@@ -50,6 +50,13 @@ function buscarNomeFantasiaEmitente(cnpj) {
   return emitente ? emitente.nome_fantasia : '';
 }
 
+// Função para buscar razão social do emitente por CNPJ
+function buscarRazaoSocialEmitente(cnpj) {
+  const cnpjLimpo = cnpj.replace(/[^\d]/g, '');
+  const emitente = emitentesData.find(e => e.cnpj.replace(/[^\d]/g, '') === cnpjLimpo);
+  return emitente ? emitente.razao_social : '';
+}
+
 // Função para buscar nome fantasia do cliente por CNPJ/CPF
 function buscarNomeFantasiaCliente(cnpjCpf) {
   try {
@@ -58,6 +65,72 @@ function buscarNomeFantasiaCliente(cnpjCpf) {
     return cliente ? cliente.nome_fantasia : '';
   } catch (error) {
     console.error('Erro ao buscar cliente:', error);
+    return '';
+  }
+}
+
+// ===== FUNÇÕES ALTERNATIVAS USANDO SUPABASE =====
+// Função para buscar emitente no Supabase por CNPJ
+async function buscarEmitenteSupabase(cnpj) {
+  try {
+    const cnpjLimpo = cnpj.replace(/[^\d]/g, '');
+    const { data, error } = await supabase
+      .from('emitentes')
+      .select('cnpj, razao_social, nome_fantasia')
+      .eq('cnpj', cnpjLimpo)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error('Erro ao buscar emitente no Supabase:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar emitente no Supabase:', error);
+    return null;
+  }
+}
+
+// Função para buscar cliente no Supabase por CNPJ/CPF
+async function buscarClienteSupabase(cnpjCpf) {
+  try {
+    const cnpjCpfLimpo = cnpjCpf.replace(/[^\d]/g, '');
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('cnpj, razao_social, nome_fantasia, rede, uf, vendedor')
+      .eq('cnpj', cnpjCpfLimpo)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error('Erro ao buscar cliente no Supabase:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar cliente no Supabase:', error);
+    return null;
+  }
+}
+
+// Função para buscar fretista no Supabase por placa
+async function buscarFretistaSupabase(placa) {
+  try {
+    const { data, error } = await supabase
+      .from('fretistas')
+      .select('placa, nome')
+      .eq('placa', placa.toUpperCase())
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error('Erro ao buscar fretista no Supabase:', error);
+      return null;
+    }
+    
+    return data ? data.nome : '';
+  } catch (error) {
+    console.error('Erro ao buscar fretista no Supabase:', error);
     return '';
   }
 }
@@ -134,25 +207,44 @@ function validarCFOP(cfop) {
 }
 
 // Função para verificar duplicatas
-function verificarDuplicata(numeroNF, cnpjEmitente, dataEmissao, fileHash) {
-  const chaveNota = `${numeroNF}-${cnpjEmitente}-${dataEmissao}`;
-  
-  // Verifica se o arquivo já foi processado pelo hash
-  if (processedFiles.has(fileHash)) {
-    return {
-      isDuplicata: true,
-      tipo: 'arquivo',
-      mensagem: 'Este arquivo já foi processado anteriormente'
-    };
-  }
+async function verificarDuplicata(numeroNF, cnpjEmitente, dataEmissao, fileHash) {
+  // Verifica se a nota fiscal já foi processada consultando o banco de dados
+  try {
+    const { data: notaExistente, error } = await supabase
+      .from('registros')
+      .select('numero_nf')
+      .eq('numero_nf', numeroNF)
+      .limit(1);
 
-  // Verifica se a nota fiscal já foi processada
-  if (processedNotes.has(chaveNota)) {
-    return {
-      isDuplicata: true,
-      tipo: 'nota',
-      mensagem: `Nota fiscal ${numeroNF} do emitente ${cnpjEmitente} com data ${dataEmissao} já foi processada`
-    };
+    if (error) {
+      console.error('Erro ao verificar duplicata no banco:', error);
+      // Em caso de erro, continua com verificação local
+      const chaveNota = `${numeroNF}-${cnpjEmitente}-${dataEmissao}`;
+      if (processedNotes.has(chaveNota)) {
+        return {
+          isDuplicata: true,
+          tipo: 'nota',
+          mensagem: `Nota fiscal ${numeroNF} já foi processada (verificação local)`
+        };
+      }
+    } else if (notaExistente && notaExistente.length > 0) {
+      return {
+        isDuplicata: true,
+        tipo: 'nota',
+        mensagem: `Nota fiscal ${numeroNF} já existe no sistema`
+      };
+    }
+  } catch (error) {
+    console.error('Erro na consulta de duplicata:', error);
+    // Fallback para verificação local em caso de erro
+    const chaveNota = `${numeroNF}-${cnpjEmitente}-${dataEmissao}`;
+    if (processedNotes.has(chaveNota)) {
+      return {
+        isDuplicata: true,
+        tipo: 'nota',
+        mensagem: `Nota fiscal ${numeroNF} já foi processada (verificação local)`
+      };
+    }
   }
 
   return { isDuplicata: false };
@@ -162,18 +254,12 @@ function verificarDuplicata(numeroNF, cnpjEmitente, dataEmissao, fileHash) {
 function registrarProcessamento(numeroNF, cnpjEmitente, dataEmissao, fileHash) {
   const chaveNota = `${numeroNF}-${cnpjEmitente}-${dataEmissao}`;
   
-  processedFiles.set(fileHash, {
-    timestamp: new Date(),
-    chaveNota: chaveNota
-  });
-  
   processedNotes.add(chaveNota);
 }
 
 // Endpoint para limpar cache de duplicatas (apenas para admin)
 app.post('/admin/limpar-cache-duplicatas', (req, res) => {
   try {
-    processedFiles.clear();
     processedNotes.clear();
     res.json({ 
       success: true, 
@@ -220,22 +306,9 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Configuração do multer para upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
+// Configuração do multer para upload (apenas em memória, sem salvar arquivos)
 const upload = multer({ 
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 50 * 1024 * 1024 // 50MB max
   }
@@ -246,7 +319,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
   }
-  res.json({ message: 'Arquivo recebido com sucesso!', filename: req.file.filename });
+  res.json({ message: 'Arquivo recebido com sucesso!', filename: req.file.originalname });
 });
 
 // Função para extrair o número da NF do texto da página
@@ -398,6 +471,8 @@ function extrairCamposNota(texto) {
   // Hora da Saída/Entrada (Hora da Emissão)
   let horaSaida = '';
   const horaSaidaMatches = [
+    texto.match(/HORA DA SA[ÍI]DA\/ENTRADA\s*(\d{2}:\d{2}:\d{2})/i),
+    texto.match(/Hora (?:da )?Sa[íi]da\/Entrada\s*:?\s*(\d{2}:\d{2}(?::\d{2})?)/i),
     texto.match(/Hora (?:da )?Sa[íi]da\s*:?\s*(\d{2}:\d{2}(?::\d{2})?)/i),
     texto.match(/Hora (?:de )?Sa[íi]da\s*:?\s*(\d{2}:\d{2}(?::\d{2})?)/i),
     texto.match(/Hora (?:da )?Emiss[aã]o\s*:?\s*(\d{2}:\d{2}(?::\d{2})?)/i),
@@ -407,38 +482,96 @@ function extrairCamposNota(texto) {
   for (const match of horaSaidaMatches) {
     if (match) {
       horaSaida = match[1];
+      // Garantir formato HH:MM:SS
+      if (horaSaida.length === 5) {
+        horaSaida += ':00';
+      }
       break;
     }
   }
 
-  // Data de Entrega
+  // Data de Entrega - Calcular baseado na regra de hora da saída
   let dataEntrega = '';
-  const dataEntregaMatches = [
-    texto.match(/Data (?:de |da )?Entrega\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
-    texto.match(/Data (?:de |da )?Recebimento\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
-    texto.match(/Entrega\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
-    texto.match(/Recebimento\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i)
-  ];
   
-  for (const match of dataEntregaMatches) {
-    if (match) {
-      dataEntrega = `${match[1]}.${match[2]}.${match[3]}`;
-      break;
+  // Se temos data de emissão e hora da saída, calcular data de entrega
+  if (dataEmissao && horaSaida) {
+    try {
+      // Converter data de emissão para objeto Date
+      const [dia, mes, ano] = dataEmissao.split('.');
+      const dataEmissaoObj = new Date(ano, mes - 1, dia);
+      
+      // Extrair hora da saída
+      const [horas, minutos] = horaSaida.split(':').map(Number);
+      
+      // Aplicar regra: 00:00-16:59 = mesma data, 17:00-23:59 = dia seguinte
+      if (horas >= 17 && horas <= 23) {
+        // Adicionar 1 dia (dia seguinte)
+        dataEmissaoObj.setDate(dataEmissaoObj.getDate() + 1);
+      }
+      // Se horas >= 0 && horas <= 16, mantém a mesma data (não adiciona nada)
+      
+      // Formatar data de entrega
+      const diaEntrega = String(dataEmissaoObj.getDate()).padStart(2, '0');
+      const mesEntrega = String(dataEmissaoObj.getMonth() + 1).padStart(2, '0');
+      const anoEntrega = dataEmissaoObj.getFullYear();
+      dataEntrega = `${diaEntrega}.${mesEntrega}.${anoEntrega}`;
+      
+    } catch (error) {
+      console.error('Erro ao calcular data de entrega:', error);
+      // Fallback: tentar extrair da nota
+      const dataEntregaMatches = [
+        texto.match(/Data (?:de |da )?Entrega\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
+        texto.match(/Data (?:de |da )?Recebimento\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
+        texto.match(/Entrega\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
+        texto.match(/Recebimento\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i)
+      ];
+      
+      for (const match of dataEntregaMatches) {
+        if (match) {
+          dataEntrega = `${match[1]}.${match[2]}.${match[3]}`;
+          break;
+        }
+      }
+    }
+  } else {
+    // Fallback: tentar extrair da nota
+    const dataEntregaMatches = [
+      texto.match(/Data (?:de |da )?Entrega\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
+      texto.match(/Data (?:de |da )?Recebimento\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
+      texto.match(/Entrega\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i),
+      texto.match(/Recebimento\s*:?\s*(\d{2})[\/-](\d{2})[\/-](\d{4})/i)
+    ];
+    
+    for (const match of dataEntregaMatches) {
+      if (match) {
+        dataEntrega = `${match[1]}.${match[2]}.${match[3]}`;
+        break;
+      }
     }
   }
 
-  // Rede (buscar em informações complementares ou dados adicionais)
+  // Rede - buscar no clientes.json usando CNPJ/CPF do destinatário
   let rede = '';
-  const redeMatches = [
-    texto.match(/Rede\s*:?\s*([A-Za-z\s]+)/i),
-    texto.match(/Rede\s+([A-Za-z\s]+)/i),
-    texto.match(/REDE\s*:?\s*([A-Za-z\s]+)/i)
-  ];
+  if (cnpjCpfDestinatario) {
+    const cliente = buscarClientePorCNPJ(cnpjCpfDestinatario);
+    if (cliente && cliente.rede) {
+      rede = cliente.rede;
+    }
+  }
   
-  for (const match of redeMatches) {
-    if (match) {
-      rede = match[1].trim().split(/\s+/).slice(0, 3).join(' '); // Limita a 3 palavras
-      break;
+  // Se não encontrou no clientes.json, tentar extrair da nota
+  if (!rede) {
+    const redeMatches = [
+      texto.match(/Rede\s*:?\s*([A-Za-z\s]+)/i),
+      texto.match(/Rede\s+([A-Za-z\s]+)/i),
+      texto.match(/REDE\s*:?\s*([A-Za-z\s]+)/i)
+    ];
+    
+    for (const match of redeMatches) {
+      if (match) {
+        rede = match[1].trim().split(/\s+/).slice(0, 3).join(' '); // Limita a 3 palavras
+        break;
+      }
     }
   }
 
@@ -459,19 +592,29 @@ function extrairCamposNota(texto) {
     }
   }
 
-  // Vendedor (buscar em informações complementares ou dados do vendedor)
+  // Vendedor - buscar no clientes.json usando CNPJ/CPF do destinatário
   let vendedor = '';
-  const vendedorMatches = [
-    texto.match(/Vendedor\s*:?\s*([A-Za-z\s]+)/i),
-    texto.match(/Representante\s*:?\s*([A-Za-z\s]+)/i),
-    texto.match(/Resp\.?\s*Vendas?\s*:?\s*([A-Za-z\s]+)/i),
-    texto.match(/VENDEDOR\s*:?\s*([A-Za-z\s]+)/i)
-  ];
+  if (cnpjCpfDestinatario) {
+    const cliente = buscarClientePorCNPJ(cnpjCpfDestinatario);
+    if (cliente && cliente.vendedor) {
+      vendedor = cliente.vendedor;
+    }
+  }
   
-  for (const match of vendedorMatches) {
-    if (match) {
-      vendedor = match[1].trim().split(/\s+/).slice(0, 3).join(' '); // Limita a 3 palavras
-      break;
+  // Se não encontrou no clientes.json, tentar extrair da nota
+  if (!vendedor) {
+    const vendedorMatches = [
+      texto.match(/Vendedor\s*:?\s*([A-Za-z\s]+)/i),
+      texto.match(/Representante\s*:?\s*([A-Za-z\s]+)/i),
+      texto.match(/Resp\.?\s*Vendas?\s*:?\s*([A-Za-z\s]+)/i),
+      texto.match(/VENDEDOR\s*:?\s*([A-Za-z\s]+)/i)
+    ];
+    
+    for (const match of vendedorMatches) {
+      if (match) {
+        vendedor = match[1].trim().split(/\s+/).slice(0, 3).join(' '); // Limita a 3 palavras
+        break;
+      }
     }
   }
 
@@ -502,7 +645,7 @@ function extrairCamposNota(texto) {
   
   for (const match of naturezaMatches) {
     if (match) {
-      naturezaOperacao = match[1].trim().split(/\s+/).slice(0, 6).join(' '); // Limita a 6 palavras
+      naturezaOperacao = match[1].trim().split(/\s+/).slice(0, 2).join(' '); // Limita a 2 palavras conforme solicitado
       break;
     }
   }
@@ -544,15 +687,21 @@ function extrairCamposNota(texto) {
 
   // Valor Total da Nota
   let valorTotal = '';
-  // Busca por "V. TOTAL DA NOTA" seguido do valor
-  const valorTotalMatch = texto.match(/V\.\s*TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9.,]+)/i);
+  // Busca por "V. TOTAL DA NOTA" seguido do valor - melhorada para capturar valores completos
+  const valorTotalMatch = texto.match(/V\.\s*TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i);
   if (valorTotalMatch) {
     valorTotal = valorTotalMatch[1].trim();
   } else {
     // Busca alternativa por "VALOR TOTAL DA NOTA"
-    const valorTotalAltMatch = texto.match(/VALOR\s+TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9.,]+)/i);
+    const valorTotalAltMatch = texto.match(/VALOR\s+TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i);
     if (valorTotalAltMatch) {
       valorTotal = valorTotalAltMatch[1].trim();
+    } else {
+      // Busca mais genérica por padrões de valor após "TOTAL"
+      const valorGenericoMatch = texto.match(/(?:TOTAL|V\.\s*TOTAL)[^\d]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i);
+      if (valorGenericoMatch) {
+        valorTotal = valorGenericoMatch[1].trim();
+      }
     }
   }
 
@@ -611,15 +760,10 @@ app.post('/processar', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
     }
     
-    console.log('Arquivo recebido:', req.file.filename);
-    const pdfPath = path.join(__dirname, 'uploads', req.file.filename);
+    console.log('Arquivo recebido:', req.file.originalname);
     
-    // Verificar se o arquivo existe
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(400).json({ error: 'Arquivo não encontrado após upload.' });
-    }
-    
-    const pdfBytes = fs.readFileSync(pdfPath);
+    // Usar o buffer do arquivo em memória
+    const pdfBytes = req.file.buffer;
   
   // Gerar hash do arquivo para verificação de duplicatas
   const fileHash = generateFileHash(pdfBytes);
@@ -650,8 +794,8 @@ app.post('/processar', upload.single('file'), async (req, res) => {
   }
 
   // Gerar PDFs agrupados por NF, extrair campos e renomear
-  const arquivosGerados = [];
   const dadosCSV = [];
+  let registrosSalvos = 0;
   
   for (const numeroNF in paginasPorNF) {
     try {
@@ -678,7 +822,7 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     const campos = extrairCamposNota(textosPorNF[numeroNF][0]);
     
     // Calcular campos automáticos
-    const dataEntregaCalculada = calcularDataEntrega(campos.dataEmissao);
+    const dataEntregaCalculada = calcularDataEntrega(campos.dataEmissao, campos.horaSaida);
     const diasAtraso = calcularDiasAtraso(campos.dataVencimento);
     const diasVencimento = calcularDiasVencimento(campos.dataVencimento);
 
@@ -702,30 +846,23 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     }
 
     // Verificar duplicatas ANTES de salvar no Supabase
-    const verificacaoDuplicata = verificarDuplicata(
-      campos.numeroNF, 
-      campos.cnpjEmitente, 
-      campos.dataEmissao, 
+    const verificacaoDuplicata = await verificarDuplicata(
+      campos.numeroNF,
+      campos.cnpjEmitente,
+      campos.dataEmissao,
       fileHash
     );
-    
+
     if (verificacaoDuplicata.isDuplicata) {
       duplicatas.push({
         numeroNF: campos.numeroNF,
         tipo: verificacaoDuplicata.tipo,
         mensagem: verificacaoDuplicata.mensagem
       });
+
+      console.log(`⚠️ Duplicata encontrada - NF ${campos.numeroNF}: ${verificacaoDuplicata.mensagem}`);
       
-      // Se for duplicata de arquivo, interrompe o processamento
-      if (verificacaoDuplicata.tipo === 'arquivo') {
-        return res.status(409).json({
-          error: 'Arquivo duplicado',
-          message: verificacaoDuplicata.mensagem,
-          duplicatas: duplicatas
-        });
-      }
-      
-      // Se for duplicata de nota, pula para a próxima
+      // Se for duplicata de nota, apenas pula esta nota e continua com as demais
       continue;
     }
 
@@ -740,13 +877,31 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     // Salvar registro individual no Supabase para cada nota
     let registroIndividual;
     try {
+      // Calcular situação baseada na data de vencimento
+      let situacao = 'Dentro do Prazo';
+      if (campos.dataVencimento) {
+        try {
+          const [dia, mes, ano] = campos.dataVencimento.split('/');
+          const dataVencimento = new Date(ano, mes - 1, dia);
+          const hoje = new Date();
+          const diffTime = dataVencimento - hoje;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 10 && diffDays >= 0) {
+            situacao = 'Vencimento Próximo';
+          }
+        } catch (error) {
+          console.error('Erro ao calcular situação:', error);
+        }
+      }
+
       registroIndividual = {
         // Dados da nota fiscal
         numero_nf: campos.numeroNF,
         cnpj_emitente: campos.cnpjEmitente || '',
-        razao_social_emitente: campos.nomeFantasiaEmitente || '',
+        nome_fantasia_emitente: campos.nomeFantasiaEmitente || '',
+        razao_social_emitente: buscarRazaoSocialEmitente(campos.cnpjEmitente || ''),
         data_emissao: campos.dataEmissao,
-        hora_emissao: campos.horaSaida || null,
         hora_saida: campos.horaSaida || null,
         data_entrega: dataEntregaCalculada,
         
@@ -759,7 +914,7 @@ app.post('/processar', upload.single('file'), async (req, res) => {
         rede: campos.rede || '',
         uf: campos.uf || '',
         vendedor: campos.vendedor || '',
-        valor_total: campos.valorTotal ? parseFloat(campos.valorTotal.replace(/[^\d,.-]/g, '').replace(',', '.')) || null : null,
+        valor_total: campos.valorTotal ? parseFloat(campos.valorTotal.replace(/\./g, '').replace(',', '.')) || null : null,
         
         // Dados de transporte
         placa: campos.placa,
@@ -771,6 +926,7 @@ app.post('/processar', upload.single('file'), async (req, res) => {
         natureza_operacao: campos.naturezaOperacao || '',
         
         // Status e controle
+        situacao: situacao,
         status: 'PENDENTE'
       };
 
@@ -788,24 +944,43 @@ app.post('/processar', upload.single('file'), async (req, res) => {
          
          // Salvar o ID do registro para atualizar o nome do arquivo depois
          registroIndividual.registro_id = registroSalvo[0]?.id;
+         registrosSalvos++;
        }
      } catch (error) {
        console.error('Erro ao processar registro individual:', error);
      }
     
-    // Validar CFOP se presente
+    // Validar natureza da operação - REJEITAR REGISTRO SE NÃO CONTÉM REVENDA OU VENDA
+    if (!campos.naturezaOperacao || 
+        (!campos.naturezaOperacao.toUpperCase().includes('REVENDA') && 
+         !campos.naturezaOperacao.toUpperCase().includes('VENDA'))) {
+      console.error(`❌ NATUREZA DA OPERAÇÃO INVÁLIDA - NF ${campos.numeroNF}: ${campos.naturezaOperacao || 'não encontrada'}`);
+      validacoes.push({
+        numeroNF: campos.numeroNF,
+        tipo: 'NATUREZA_REJEITADA',
+        erro: `Natureza da operação "${campos.naturezaOperacao || 'não encontrada'}" não contém REVENDA ou VENDA. Favor verificar a NF ${campos.numeroNF}.`,
+        valor: campos.naturezaOperacao || 'não encontrada'
+      });
+      // Pular este registro - não processar
+      continue;
+    }
+    
+    // Validar CFOP se presente - REJEITAR REGISTRO SE INVÁLIDO
     if (campos.cfop) {
       const validacaoCFOP = validarCFOP(campos.cfop);
       if (!validacaoCFOP.valido) {
+        console.error(`❌ CFOP INVÁLIDO - NF ${campos.numeroNF}: ${validacaoCFOP.erro}`);
         validacoes.push({
           numeroNF: campos.numeroNF,
-          tipo: 'CFOP',
-          erro: validacaoCFOP.erro,
-          aviso: validacaoCFOP.aviso,
+          tipo: 'CFOP_REJEITADO',
+          erro: `CFOP ${campos.cfop} não refere-se a uma nota fiscal de venda. ${validacaoCFOP.erro}. Favor verificar a NF ${campos.numeroNF}.`,
           valor: campos.cfop
         });
+        // Pular este registro - não processar
+        continue;
       }
     }
+    // Se não tem CFOP, continua processando (CFOP é opcional)
     
     // Nome do arquivo com a nova ordem solicitada
     // Formato: NF - [Número] - [Emitente] - Emiss [Data] - [Nome Fantasia] - [Razão Social] - [Valor] - [Placa] - [Fretista] - Venc [Data]
@@ -906,13 +1081,8 @@ app.post('/processar', upload.single('file'), async (req, res) => {
       continue;
     }
     
-    // Gerar bytes do PDF individual
+    // Gerar bytes do PDF individual (apenas para dados CSV, não salvar arquivo)
     const pdfIndividualBytes = await pdfIndividual.save();
-    
-    // Salvar arquivo PDF individual
-    const caminhoArquivo = path.join(__dirname, 'uploads', nomeArquivo);
-    fs.writeFileSync(caminhoArquivo, pdfIndividualBytes);
-    arquivosGerados.push(nomeArquivo);
 
     // Adicionar dados para o arquivo de exportação
     dadosCSV.push({
@@ -958,41 +1128,109 @@ app.post('/processar', upload.single('file'), async (req, res) => {
 
   // Salvar registros no Supabase
   try {
-    const registrosParaSalvar = dadosCSV.map(item => ({
-      numero_nf: item['Nº NF'],
-      nome_fantasia: item['Nome Fantasia'] !== 'N/A' ? item['Nome Fantasia'] : null,
-      data_emissao: item['Data de Emissão'] || null,
-      placa: item['Placa'],
-      fretista: item['Fretista'],
-      razao_social: item['Razão Social'],
-      valor_total: item['Valor Total'] !== 'N/A' ? parseFloat(item['Valor Total']?.replace(/[^\d,.-]/g, '').replace(',', '.')) || null : null,
-      cnpj_emitente: item['CNPJ Emitente'],
-      razao_social_emitente: item['Nome Fantasia Emitente'],
-      cnpj_cpf_destinatario: item['CNPJ/CPF Destinatário'],
-      hora_emissao: item['Hora Emissão'] || null,
-      data_vencimento: item['Data Vencimento'] || null,
-      hora_saida: item['Hora Saída'] || null,
-      data_entrega: item['Data Entrega'] || null,
-      rede: item['Rede'],
-      uf: item['UF'],
-      vendedor: item['Vendedor'],
-      cfop: item['CFOP'],
-      natureza_operacao: item['Natureza da Operação'],
-      status: 'PENDENTE'
-    }));
+    const registrosParaSalvar = dadosCSV.map(item => {
+      // Calcular situação baseada na data de vencimento
+      let situacao = 'Dentro do Prazo';
+      if (item['Data Vencimento']) {
+        try {
+          const [dia, mes, ano] = item['Data Vencimento'].split('.');
+          const dataVencimento = new Date(ano, mes - 1, dia);
+          const hoje = new Date();
+          const diffTime = dataVencimento - hoje;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 10 && diffDays >= 0) {
+            situacao = 'Vencimento Próximo';
+          }
+        } catch (error) {
+          console.error('Erro ao calcular situação:', error);
+        }
+      }
+
+      return {
+         numero_nf: item['Nº NF'],
+         nome_fantasia: item['Nome Fantasia'] !== 'N/A' ? item['Nome Fantasia'] : null,
+         data_emissao: item['Data de Emissão'] || null,
+         placa: item['Placa'],
+         fretista: item['Fretista'],
+         razao_social: item['Razão Social'],
+         valor_total: item['Valor Total'] !== 'N/A' ? parseFloat(item['Valor Total']?.replace(/\./g, '').replace(',', '.')) || null : null,
+         cnpj_emitente: item['CNPJ Emitente'],
+         nome_fantasia_emitente: item['Nome Fantasia Emitente'],
+         razao_social_emitente: buscarRazaoSocialEmitente(item['CNPJ Emitente'] || ''),
+         cnpj_cpf_destinatario: item['CNPJ/CPF Destinatário'],
+         data_vencimento: item['Data Vencimento'] || null,
+         hora_saida: item['Hora Saída'] || null,
+         data_entrega: (item['Data Entrega'] && item['Data Entrega'] !== 'NaN.NaN.NaN' && !item['Data Entrega'].includes('NaN')) ? 
+           (() => {
+             try {
+               const [dia, mes, ano] = item['Data Entrega'].split('.');
+               return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+             } catch (error) {
+               console.error('Erro ao converter data_entrega:', error);
+               return null;
+             }
+           })() : null,
+         rede: item['Rede'],
+         uf: item['UF'],
+         vendedor: item['Vendedor'],
+         cfop: item['CFOP'],
+         natureza_operacao: item['Natureza da Operação'],
+         situacao: situacao,
+         usuario_id: 'dc580b23-da54-473e-9d4f-7741e0ba4378', // ID do usuário da tabela usuarios
+         status: 'PENDENTE'
+       };
+    });
 
     if (registrosParaSalvar.length > 0) {
       console.log('Salvando registros em lote no Supabase:', registrosParaSalvar.length, 'registros');
-      const { data, error } = await supabase
-        .from('registros')
-        .insert(registrosParaSalvar);
-
-      if (error) {
-        console.error('ERRO ao salvar em lote no Supabase:', error);
-        // Não interrompe o processamento, apenas loga o erro
-      } else {
-        console.log(`✅ SUCESSO - ${registrosParaSalvar.length} registros salvos em lote no Supabase`);
+      
+      // Verificar duplicatas antes de inserir em lote (apenas por número da NF)
+      const duplicatasEncontradas = [];
+      const registrosUnicos = [];
+      
+      for (const registro of registrosParaSalvar) {
+        const { data: notaExistente } = await supabase
+          .from('registros')
+          .select('numero_nf')
+          .eq('numero_nf', registro.numero_nf)
+          .single();
+          
+        if (notaExistente) {
+          duplicatasEncontradas.push({
+            numeroNF: registro.numero_nf,
+            mensagem: `Nota fiscal ${registro.numero_nf} já foi registrada`
+          });
+        } else {
+          registrosUnicos.push(registro);
+        }
       }
+      
+      // Inserir apenas registros únicos
+      if (registrosUnicos.length > 0) {
+        const { data, error } = await supabase
+          .from('registros')
+          .insert(registrosUnicos);
+          
+        if (error) {
+          console.error('Erro ao salvar no Supabase:', error);
+          return res.status(500).json({ error: 'Erro ao salvar dados' });
+        }
+        
+        console.log('Registros salvos com sucesso:', registrosUnicos.length);
+      }
+      
+      // Retornar informações sobre duplicatas se houver
+      if (duplicatasEncontradas.length > 0) {
+        return res.json({
+          message: `Processamento concluído. ${registrosUnicos.length} registros salvos, ${duplicatasEncontradas.length} duplicatas ignoradas.`,
+          registrosSalvos: registrosUnicos.length,
+          duplicatas: duplicatasEncontradas
+        });
+      }
+
+    } else {
+      console.log('Nenhum registro para salvar no Supabase');
     }
   } catch (error) {
     console.error('Erro ao processar dados para Supabase:', error);
@@ -1001,13 +1239,12 @@ app.post('/processar', upload.single('file'), async (req, res) => {
 
   // Preparar resposta com validações e duplicatas
   const response = {
-    arquivos: arquivosGerados,
     message: 'Processamento concluído!',
-    totalProcessados: arquivosGerados.length,
+    totalProcessados: registrosSalvos,
     validacoes: validacoes.length > 0 ? validacoes : undefined,
     duplicatas: duplicatas.length > 0 ? duplicatas : undefined,
     resumo: {
-      sucessos: arquivosGerados.length,
+      sucessos: registrosSalvos,
       validacoes: validacoes.length,
       duplicatas: duplicatas.length
     }
@@ -1094,8 +1331,8 @@ function calcularDiasVencimento(dataVencimento) {
   }
 }
 
-// Função para calcular data de entrega (3 dias úteis após emissão)
-function calcularDataEntrega(dataEmissao) {
+// Função para calcular data de entrega baseada na hora de saída
+function calcularDataEntrega(dataEmissao, horaSaida) {
   if (!dataEmissao) return '';
   
   try {
@@ -1110,16 +1347,28 @@ function calcularDataEntrega(dataEmissao) {
       emissao = new Date(ano, mes - 1, dia);
     }
     
-    let diasAdicionados = 0;
     let dataEntrega = new Date(emissao);
     
-    while (diasAdicionados < 3) {
-      dataEntrega.setDate(dataEntrega.getDate() + 1);
+    // Se temos hora de saída, aplicar a regra específica
+    if (horaSaida) {
+      const [horas] = horaSaida.split(':').map(Number);
       
-      // Verificar se é dia útil (segunda a sexta)
-      const diaSemana = dataEntrega.getDay();
-      if (diaSemana >= 1 && diaSemana <= 5) {
-        diasAdicionados++;
+      // Regra: 00:00-16:59 = mesma data, 17:00-23:59 = dia seguinte
+      if (horas >= 17 && horas <= 23) {
+        dataEntrega.setDate(dataEntrega.getDate() + 1);
+      }
+      // Se horas >= 0 && horas <= 16, mantém a mesma data
+    } else {
+      // Se não tem hora de saída, usar regra padrão (3 dias úteis)
+      let diasAdicionados = 0;
+      while (diasAdicionados < 3) {
+        dataEntrega.setDate(dataEntrega.getDate() + 1);
+        
+        // Verificar se é dia útil (segunda a sexta)
+        const diaSemana = dataEntrega.getDay();
+        if (diaSemana >= 1 && diaSemana <= 5) {
+          diasAdicionados++;
+        }
       }
     }
     
@@ -1167,6 +1416,26 @@ app.post('/registrar-nota', async (req, res) => {
       });
     }
 
+    // Verificar se a nota fiscal já existe no banco de dados (apenas por número da NF)
+    const { data: notaExistente, error: errorVerificacao } = await supabase
+      .from('registros')
+      .select('numero_nf')
+      .eq('numero_nf', numero_nf)
+      .single();
+
+    if (notaExistente) {
+      return res.status(409).json({
+        error: 'Nota fiscal duplicada',
+        message: `A nota fiscal ${numero_nf} já foi registrada e não pode ser duplicada.`
+      });
+    }
+
+    // Ignorar erro se não encontrar registro (é o comportamento esperado para notas novas)
+    if (errorVerificacao && errorVerificacao.code !== 'PGRST116') {
+      console.error('Erro ao verificar duplicata:', errorVerificacao);
+      return res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+
     // Buscar fretista pela placa
     const fretista = buscarFretista(placa);
 
@@ -1177,9 +1446,27 @@ app.post('/registrar-nota', async (req, res) => {
     }
 
     // Calcular campos automáticos
-    const dataEntregaCalculada = calcularDataEntrega(data_emissao);
+    const dataEntregaCalculada = calcularDataEntrega(data_emissao, hora_saida);
     const diasAtraso = calcularDiasAtraso(data_vencimento);
     const diasVencimento = calcularDiasVencimento(data_vencimento);
+
+    // Calcular situação baseada na data de vencimento
+    let situacaoCalculada = 'Dentro do Prazo';
+    if (data_vencimento) {
+      try {
+        const [dia, mes, ano] = data_vencimento.split('/');
+        const dataVencimento = new Date(ano, mes - 1, dia);
+        const hoje = new Date();
+        const diffTime = dataVencimento - hoje;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 10 && diffDays >= 0) {
+          situacaoCalculada = 'Vencimento Próximo';
+        }
+      } catch (error) {
+        console.error('Erro ao calcular situação:', error);
+      }
+    }
 
     // Preparar dados para inserção
     const registro = {
@@ -1192,8 +1479,9 @@ app.post('/registrar-nota', async (req, res) => {
       numero_nf,
       cnpj_emitente,
       nome_emitente: nome_emitente || '',
+      nome_fantasia_emitente: nome_emitente || '',
+      razao_social_emitente: buscarRazaoSocialEmitente(cnpj_emitente || ''),
       data_emissao,
-      hora_emissao: hora_saida || null,
       hora_saida: hora_saida || null,
       data_entrega: dataEntregaCalculada,
       
@@ -1206,7 +1494,7 @@ app.post('/registrar-nota', async (req, res) => {
       rede: rede || '',
       uf: uf || '',
       vendedor: vendedor || '',
-      valor_total: valor ? parseFloat(valor.toString().replace(/[^\d,.-]/g, '').replace(',', '.')) : null,
+      valor_total: valor ? parseFloat(valor.toString().replace(/\./g, '').replace(',', '.')) : null,
       
       // Dados de transporte
       placa,
@@ -1218,7 +1506,7 @@ app.post('/registrar-nota', async (req, res) => {
       natureza_operacao: natureza_operacao || '',
       
       // Status e controle
-      situacao: situacao || 'Pendente',
+      situacao: situacaoCalculada,
       status: status || 'Emitida',
       dias_atraso: diasAtraso,
       dias_vencimento: diasVencimento,
@@ -1503,6 +1791,241 @@ app.get('/api/registros', async (req, res) => {
   }
 })
 
+// Endpoint para estatísticas de relatórios
+app.get('/api/relatorios/estatisticas', async (req, res) => {
+  try {
+    // Buscar dados de registros para estatísticas
+    const { data: registros, error } = await supabase
+      .from('registros')
+      .select('*')
+    
+    if (error) {
+      console.error('Erro ao buscar dados para estatísticas:', error)
+      return res.status(500).json({ error: 'Erro ao buscar dados de estatísticas' })
+    }
+
+    // Calcular estatísticas
+    const totalRegistros = registros.length
+    const valorTotal = registros.reduce((sum, r) => sum + (parseFloat(r.valor_total) || 0), 0)
+    const entregasCompletas = registros.filter(r => r.status === 'Entregue').length
+    const entregasPendentes = registros.filter(r => r.status === 'Pendente').length
+    
+    // Estatísticas por fretista
+    const fretistas = [...new Set(registros.map(r => r.fretista).filter(Boolean))]
+    
+    const estatisticas = {
+      vendas: {
+        total: valorTotal,
+        variacao: 12.5, // Calcular baseado em período anterior
+        meta: valorTotal * 1.2,
+        pedidos: totalRegistros
+      },
+      entregas: {
+        total: totalRegistros,
+        concluidas: entregasCompletas,
+        pendentes: entregasPendentes,
+        taxa_sucesso: totalRegistros > 0 ? Math.round((entregasCompletas / totalRegistros) * 100) : 0
+      },
+      financeiro: {
+        receita: valorTotal,
+        custos: valorTotal * 0.7,
+        lucro: valorTotal * 0.3,
+        margem: 30
+      },
+      usuarios: {
+        ativos: fretistas.length,
+        novos: Math.floor(fretistas.length * 0.15),
+        fretistas: fretistas.length,
+        empresas: [...new Set(registros.map(r => r.nome_fantasia).filter(Boolean))].length
+      }
+    }
+    
+    res.json(estatisticas)
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Endpoint para dados de vendas por período
+app.get('/api/relatorios/vendas', async (req, res) => {
+  try {
+    const { inicio, fim } = req.query
+    
+    let query = supabase.from('registros').select('*')
+    
+    if (inicio && fim) {
+      query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
+    }
+    
+    const { data: registros, error } = await query
+    
+    if (error) {
+      console.error('Erro ao buscar dados de vendas:', error)
+      return res.status(500).json({ error: 'Erro ao buscar dados de vendas' })
+    }
+
+    // Agrupar por mês
+    const vendasPorMes = registros.reduce((acc, registro) => {
+      const mes = registro.data_emissao ? registro.data_emissao.substring(0, 7) : 'Sem data'
+      if (!acc[mes]) {
+        acc[mes] = { valor: 0, pedidos: 0 }
+      }
+      acc[mes].valor += parseFloat(registro.valor_total) || 0
+      acc[mes].pedidos++
+      return acc
+    }, {})
+    
+    // Converter para array ordenado
+    const vendas = Object.entries(vendasPorMes)
+      .map(([mes, dados]) => ({
+        mes: mes,
+        valor: dados.valor,
+        pedidos: dados.pedidos
+      }))
+      .sort((a, b) => a.mes.localeCompare(b.mes))
+    
+    res.json(vendas)
+  } catch (error) {
+    console.error('Erro ao buscar dados de vendas:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Endpoint para gerar relatório personalizado
+app.post('/api/relatorios/gerar', async (req, res) => {
+  try {
+    const { tipo, dataInicio, dataFim, formato } = req.body
+    
+    let query = supabase.from('registros').select('*')
+    
+    if (dataInicio && dataFim) {
+      query = query.gte('data_emissao', dataInicio).lte('data_emissao', dataFim)
+    }
+    
+    const { data: registros, error } = await query
+    
+    if (error) {
+      console.error('Erro ao gerar relatório:', error)
+      return res.status(500).json({ error: 'Erro ao gerar relatório' })
+    }
+
+    let relatorio = {}
+    
+    switch (tipo) {
+      case 'vendas':
+        relatorio = {
+          tipo: 'vendas',
+          periodo: { inicio: dataInicio, fim: dataFim },
+          dados: registros.map(r => ({
+            numero_nf: r.numero_nf,
+            cliente: r.nome_fantasia,
+            valor_total: r.valor_total,
+            data_emissao: r.data_emissao,
+            status: r.status
+          })),
+          resumo: {
+            total_registros: registros.length,
+            valor_total: registros.reduce((sum, r) => sum + (parseFloat(r.valor_total) || 0), 0),
+            media_valor: registros.length > 0 ? registros.reduce((sum, r) => sum + (parseFloat(r.valor_total) || 0), 0) / registros.length : 0
+          }
+        }
+        break
+      
+      case 'entregas':
+        relatorio = {
+          tipo: 'entregas',
+          periodo: { inicio: dataInicio, fim: dataFim },
+          dados: registros.map(r => ({
+            numero_nf: r.numero_nf,
+            fretista: r.fretista,
+            cliente: r.nome_fantasia,
+            status: r.status,
+            data_entrega: r.data_entrega,
+            dias_atraso: r.dias_atraso
+          })),
+          resumo: {
+            total_entregas: registros.length,
+            entregues: registros.filter(r => r.status === 'Entregue').length,
+            pendentes: registros.filter(r => r.status === 'Pendente').length,
+            atrasadas: registros.filter(r => r.dias_atraso > 0).length
+          }
+        }
+        break
+      
+      default:
+        relatorio = {
+          tipo: 'geral',
+          periodo: { inicio: dataInicio, fim: dataFim },
+          dados: registros,
+          resumo: {
+            total_registros: registros.length,
+            valor_total: registros.reduce((sum, r) => sum + (parseFloat(r.valor_total) || 0), 0),
+            por_status: registros.reduce((acc, r) => {
+              acc[r.status] = (acc[r.status] || 0) + 1
+              return acc
+            }, {})
+          }
+        }
+    }
+    
+    res.json(relatorio)
+  } catch (error) {
+    console.error('Erro ao gerar relatório:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Endpoint para exportar relatório
+app.post('/api/relatorios/exportar', async (req, res) => {
+  try {
+    const { tipo, dataInicio, dataFim, formato } = req.body
+    
+    let query = supabase.from('registros').select('*')
+    
+    if (dataInicio && dataFim) {
+      query = query.gte('data_emissao', dataInicio).lte('data_emissao', dataFim)
+    }
+    
+    const { data: registros, error } = await query
+    
+    if (error) {
+      console.error('Erro ao exportar relatório:', error)
+      return res.status(500).json({ error: 'Erro ao exportar relatório' })
+    }
+
+    if (formato === 'csv') {
+      // Gerar CSV
+      const csvHeaders = 'Numero NF,Cliente,Fretista,Valor Total,Data Emissao,Status,Data Entrega,Dias Atraso\n'
+      const csvData = registros.map(r => 
+        `${r.numero_nf || ''},${r.nome_fantasia || ''},${r.fretista || ''},${r.valor_total || ''},${r.data_emissao || ''},${r.status || ''},${r.data_entrega || ''},${r.dias_atraso || ''}`
+      ).join('\n')
+      
+      res.setHeader('Content-Type', 'text/csv')
+      res.setHeader('Content-Disposition', `attachment; filename=relatorio_${tipo}_${new Date().toISOString().split('T')[0]}.csv`)
+      res.send(csvHeaders + csvData)
+      
+    } else if (formato === 'json') {
+      res.setHeader('Content-Type', 'application/json')
+      res.setHeader('Content-Disposition', `attachment; filename=relatorio_${tipo}_${new Date().toISOString().split('T')[0]}.json`)
+      res.json(registros)
+      
+    } else {
+      // Para PDF e Excel, retornar dados JSON que o frontend pode processar
+      res.json({
+        dados: registros,
+        formato: formato,
+        tipo: tipo,
+        periodo: { inicio: dataInicio, fim: dataFim }
+      })
+    }
+    
+  } catch (error) {
+    console.error('Erro ao exportar relatório:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 // Endpoint para relatórios
 app.get('/api/relatorios', async (req, res) => {
   try {
@@ -1555,7 +2078,7 @@ app.get('/api/usuarios', async (req, res) => {
     const { data: usuarios, error } = await supabase
       .from('usuarios')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('data_criacao', { ascending: false })
     
     if (error) {
       console.error('Erro ao buscar usuários:', error)

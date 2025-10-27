@@ -40,6 +40,13 @@ export const AuthProvider = ({ children }) => {
 
     console.log('handleUserRedirect: tipo de usuário =', userInfo.tipo)
     
+    // Verificar se é usuário novo (aguardando aprovação)
+    if (userInfo.tipo === 'novo' || userInfo.status === 'pendente') {
+      console.log('handleUserRedirect: usuário novo/pendente, redirecionando para /perfil')
+      navigate('/perfil')
+      return
+    }
+    
     // Redirecionar baseado no tipo de usuário
     switch (userInfo.tipo) {
       case 'administrador':
@@ -56,62 +63,36 @@ export const AuthProvider = ({ children }) => {
         navigate('/perfil')
         break
       default:
-        console.log('handleUserRedirect: tipo desconhecido, redirecionando para /dashboard')
-        navigate('/dashboard')
+        console.log('handleUserRedirect: tipo desconhecido, redirecionando para /perfil')
+        navigate('/perfil')
     }
   }
 
   useEffect(() => {
-    // Verificar usuário atual ao carregar
-    const checkUser = async () => {
+    let isMounted = true
+
+    // Função para processar usuário autenticado
+    const processAuthenticatedUser = async (authUser) => {
+      if (!isMounted) return
+      
+      console.log('AuthContext: Processando usuário autenticado:', authUser.id)
+      setUser(authUser)
+      
       try {
-        console.log('AuthContext: Iniciando verificação de usuário...')
-        const currentUser = await getCurrentUser()
-        console.log('AuthContext: Usuário atual:', currentUser)
+        // Buscar dados adicionais do usuário na tabela usuarios
+        const { data: userInfo, error } = await getUserData(authUser.id)
+        console.log('AuthContext: Dados do usuário:', userInfo, 'Erro:', error)
         
-        if (currentUser) {
-          setUser(currentUser)
-          console.log('AuthContext: Buscando dados do usuário...')
-          // Buscar dados adicionais do usuário na tabela usuarios
-          const { data: userInfo, error } = await getUserData(currentUser.id)
-          console.log('AuthContext: Dados do usuário:', userInfo, 'Erro:', error)
-          
-          // Preencher email do fallback se necessário
-          if (userInfo && !userInfo.email) {
-            userInfo.email = currentUser.email
+        if (!isMounted) return
+        
+        if (userInfo) {
+          // Preencher email se necessário
+          if (!userInfo.email) {
+            userInfo.email = authUser.email
           }
-          
-          setUserData(userInfo)
-        }
-      } catch (error) {
-        console.error('Erro ao verificar usuário:', error)
-      } finally {
-        console.log('AuthContext: Finalizando carregamento...')
-        setLoading(false)
-      }
-    }
-
-    checkUser()
-
-    // Escutar mudanças no estado de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('AuthContext: Mudança de estado de auth:', event, session)
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('AuthContext: Usuário fez login, processando...')
-          setUser(session.user)
-          // Buscar dados adicionais do usuário
-          const { data: userInfo, error } = await getUserData(session.user.id)
-          console.log('AuthContext: Dados do usuário (auth change):', userInfo, 'Erro:', error)
-          
-          // Preencher email do fallback se necessário
-          if (userInfo && !userInfo.email) {
-            userInfo.email = session.user.email
-          }
-          
           setUserData(userInfo)
           
-          // Redirecionar imediatamente se temos dados do usuário e estamos em uma página pública
+          // Redirecionar se estamos em uma página pública
           const currentPath = window.location.pathname
           const publicPaths = ['/login', '/register', '/unauthorized']
           console.log('AuthContext: Verificando redirecionamento...', {
@@ -119,20 +100,79 @@ export const AuthProvider = ({ children }) => {
             currentPath,
             isPublicPath: publicPaths.includes(currentPath)
           })
-          if (userInfo && publicPaths.includes(currentPath)) {
+          if (publicPaths.includes(currentPath)) {
             console.log('AuthContext: Redirecionando usuário...')
             handleUserRedirect(userInfo)
           }
+        } else {
+          console.error('AuthContext: Não foi possível carregar dados do usuário')
+          setUserData(null)
+        }
+      } catch (error) {
+        console.error('Erro ao processar usuário:', error)
+        if (isMounted) {
+          setUserData(null)
+        }
+      }
+    }
+
+    // Verificar usuário atual ao carregar (apenas uma vez)
+    const initializeAuth = async () => {
+      try {
+        console.log('AuthContext: Iniciando verificação inicial de usuário...')
+        const currentUser = await getCurrentUser()
+        
+        if (!isMounted) return
+        
+        if (currentUser) {
+          await processAuthenticatedUser(currentUser)
+        } else {
+          console.log('AuthContext: Nenhum usuário autenticado')
+          setUser(null)
+          setUserData(null)
+        }
+      } catch (error) {
+        console.error('Erro na verificação inicial:', error)
+        if (isMounted) {
+          setUser(null)
+          setUserData(null)
+        }
+      } finally {
+        if (isMounted) {
+          console.log('AuthContext: Finalizando carregamento inicial...')
+          setLoading(false)
+        }
+      }
+    }
+
+    initializeAuth()
+
+    // Escutar mudanças no estado de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return
+        
+        console.log('AuthContext: Mudança de estado de auth:', event)
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('AuthContext: Usuário fez login, processando...')
+          await processAuthenticatedUser(session.user)
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthContext: Usuário fez logout')
           setUser(null)
           setUserData(null)
         }
-        setLoading(false)
+        
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [navigate])
 
   const value = {

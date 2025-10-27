@@ -14,12 +14,21 @@ import {
   Filter, 
   Building, 
   PieChart,
-  Calendar
+  Calendar,
+  Activity,
+  Truck,
+  Package,
+  AlertCircle
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert'
+import { Progress } from '../components/ui/progress'
+import { Separator } from '../components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
+import { Badge } from '../components/ui/badge'
 import { Bar, Doughnut } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -141,6 +150,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData()
+    fetchChartData()
   }, [])
 
   const fetchChartData = async () => {
@@ -208,6 +218,22 @@ const Dashboard = () => {
     }).format(value)
   }
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'entregue': return 'bg-green-100 text-green-800 border-green-200'
+      case 'pendente': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'cancelado': return 'bg-red-100 text-red-800 border-red-200'
+      case 'devolvido': return 'bg-orange-100 text-orange-800 border-orange-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const calculateEfficiency = () => {
+    const total = dashboardData.totalNotas || 0
+    const entregues = dashboardData.notasEntregues || 0
+    return total > 0 ? Math.round((entregues / total) * 100) : 0
+  }
+
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -249,10 +275,24 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Alerts Section */}
+      {dashboardData.notasAtrasadas > 0 && (
+        <Alert className="border-orange-200 bg-orange-50">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Atenção!</AlertTitle>
+          <AlertDescription>
+            Você tem {dashboardData.notasAtrasadas} notas fiscais em atraso que precisam de atenção.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Filters Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtros</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros
+          </CardTitle>
           <CardDescription>
             Filtre os dados do dashboard por período e outros critérios
           </CardDescription>
@@ -300,365 +340,381 @@ const Dashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Notas</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dashboardData.totalNotas || 0}</div>
             <p className="text-xs text-muted-foreground">
               +{dashboardData.crescimentoNotas || 0}% em relação ao mês anterior
             </p>
+            <Progress value={75} className="mt-2" />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Notas Entregues</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardData.notasEntregues || 0}</div>
+            <div className="text-2xl font-bold text-green-600">{dashboardData.notasEntregues || 0}</div>
             <p className="text-xs text-muted-foreground">
               {dashboardData.percentualEntregues || 0}% do total
             </p>
+            <Progress value={calculateEfficiency()} className="mt-2" />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(dashboardData.valorTotal || 0)}</div>
+            <div className="text-2xl font-bold text-emerald-600">{formatCurrency(dashboardData.valorTotal || 0)}</div>
             <p className="text-xs text-muted-foreground">
               +{dashboardData.crescimentoValor || 0}% em relação ao mês anterior
             </p>
+            <Progress value={60} className="mt-2" />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardData.clientesAtivos || 0}</div>
+            <div className="text-2xl font-bold text-purple-600">{dashboardData.clientesAtivos || 0}</div>
             <p className="text-xs text-muted-foreground">
               +{dashboardData.crescimentoClientes || 0} novos este mês
             </p>
+            <Progress value={85} className="mt-2" />
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Evolution Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Evolução Temporal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {chartData.evolution ? (
-              <Bar
-                data={{
-                  labels: chartData.evolution.labels || [],
-                  datasets: [
-                    {
-                      label: 'Notas Fiscais',
-                      data: chartData.evolution.data || [],
-                      backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                      borderColor: 'rgba(59, 130, 246, 1)',
-                      borderWidth: 1,
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      position: 'top',
-                    },
-                    title: {
-                      display: true,
-                      text: 'Evolução de Notas Fiscais por Período',
-                    },
-                  },
-                }}
-              />
-            ) : (
-              <div className="h-64 flex items-center justify-center text-gray-500">
-                Carregando dados do gráfico...
+      {/* Status Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pendentes</p>
+                <p className="text-2xl font-bold text-yellow-600">{dashboardData.notasPendentes || 0}</p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Status Distribution Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Distribuição por Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {chartData.statusDistribution ? (
-              <Doughnut
-                data={{
-                  labels: chartData.statusDistribution.labels || [],
-                  datasets: [
-                    {
-                      data: chartData.statusDistribution.data || [],
-                      backgroundColor: [
-                        'rgba(34, 197, 94, 0.8)',
-                        'rgba(239, 68, 68, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(59, 130, 246, 0.8)',
-                      ],
-                      borderColor: [
-                        'rgba(34, 197, 94, 1)',
-                        'rgba(239, 68, 68, 1)',
-                        'rgba(245, 158, 11, 1)',
-                        'rgba(59, 130, 246, 1)',
-                      ],
-                      borderWidth: 1,
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      position: 'bottom',
-                    },
-                    title: {
-                      display: true,
-                      text: 'Status das Notas Fiscais',
-                    },
-                  },
-                }}
-              />
-            ) : (
-              <div className="h-64 flex items-center justify-center text-gray-500">
-                Carregando dados do gráfico...
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Top 20 Vencimentos Próximos */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Top 20 Vencimentos Próximos
-          </CardTitle>
-          <CardDescription>
-            Notas fiscais com vencimento nos próximos dias
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Cliente</th>
-                  <th className="text-left p-2">Nota Fiscal</th>
-                  <th className="text-left p-2">Valor</th>
-                  <th className="text-left p-2">Vencimento</th>
-                  <th className="text-left p-2">Dias Restantes</th>
-                  <th className="text-left p-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dashboardData.vencimentosProximos?.map((item, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="p-2">{item.cliente}</td>
-                    <td className="p-2">{item.numeroNota}</td>
-                    <td className="p-2">{formatCurrency(item.valor)}</td>
-                    <td className="p-2">{item.vencimento}</td>
-                    <td className="p-2">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        item.diasRestantes <= 3 ? 'bg-red-100 text-red-800' :
-                        item.diasRestantes <= 7 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {item.diasRestantes} dias
-                      </span>
-                    </td>
-                    <td className="p-2">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        item.status === 'Pendente' ? 'bg-yellow-100 text-yellow-800' :
-                        item.status === 'Vencida' ? 'bg-red-100 text-red-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                  </tr>
-                )) || (
-                  <tr>
-                    <td colSpan="6" className="text-center py-4 text-gray-500">
-                      Nenhum vencimento próximo encontrado
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Additional Dashboard Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Resumo Mensal */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Resumo Mensal
-            </CardTitle>
-            <CardDescription>
-              Estatísticas do mês atual
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Notas Processadas</span>
-                <span className="font-semibold">{dashboardData.resumoMensal?.notasProcessadas || 0}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Valor Total Processado</span>
-                <span className="font-semibold">{formatCurrency(dashboardData.resumoMensal?.valorTotalProcessado || 0)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Média por Nota</span>
-                <span className="font-semibold">{formatCurrency(dashboardData.resumoMensal?.mediaPorNota || 0)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Taxa de Entrega</span>
-                <span className="font-semibold">{dashboardData.resumoMensal?.taxaEntrega || 0}%</span>
-              </div>
+              <Clock className="h-8 w-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Alertas e Notificações */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Alertas e Notificações
-            </CardTitle>
-            <CardDescription>
-              Itens que requerem atenção
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {dashboardData.alertas?.map((alerta, index) => (
-                <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                  alerta.tipo === 'erro' ? 'bg-red-50 border-red-400' :
-                  alerta.tipo === 'aviso' ? 'bg-yellow-50 border-yellow-400' :
-                  'bg-blue-50 border-blue-400'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className={`h-4 w-4 ${
-                      alerta.tipo === 'erro' ? 'text-red-600' :
-                      alerta.tipo === 'aviso' ? 'text-yellow-600' :
-                      'text-blue-600'
-                    }`} />
-                    <span className="text-sm font-medium">{alerta.titulo}</span>
+        <Card className="border-l-4 border-l-red-500">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Canceladas</p>
+                <p className="text-2xl font-bold text-red-600">{dashboardData.notasCanceladas || 0}</p>
+              </div>
+              <XCircle className="h-8 w-8 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-orange-500">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Devolvidas</p>
+                <p className="text-2xl font-bold text-orange-600">{dashboardData.notasDevolvidas || 0}</p>
+              </div>
+              <RotateCcw className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Eficiência</p>
+                <p className="text-2xl font-bold text-blue-600">{calculateEfficiency()}%</p>
+              </div>
+              <Activity className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts and Analytics */}
+      <Tabs defaultValue="charts" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="charts">Gráficos</TabsTrigger>
+          <TabsTrigger value="vencimentos">Vencimentos</TabsTrigger>
+          <TabsTrigger value="acoes">Ações Rápidas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="charts" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Evolution Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Evolução Temporal
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {chartData.evolution ? (
+                  <Bar
+                    data={{
+                      labels: chartData.evolution.labels || [],
+                      datasets: [
+                        {
+                          label: 'Notas Fiscais',
+                          data: chartData.evolution.data || [],
+                          backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                          borderColor: 'rgba(59, 130, 246, 1)',
+                          borderWidth: 1,
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                        title: {
+                          display: true,
+                          text: 'Evolução de Notas Fiscais por Período',
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-gray-500">
+                    Carregando dados do gráfico...
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">{alerta.descricao}</p>
-                </div>
-              )) || (
-                <div className="text-center text-gray-500 py-4">
-                  Nenhum alerta no momento
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                )}
+              </CardContent>
+            </Card>
 
-      {/* Recent Files and Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+            {/* Status Distribution Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="h-5 w-5" />
+                  Distribuição por Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {chartData.statusDistribution ? (
+                  <Doughnut
+                    data={{
+                      labels: chartData.statusDistribution.labels || [],
+                      datasets: [
+                        {
+                          data: chartData.statusDistribution.data || [],
+                          backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                          ],
+                          borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(59, 130, 246, 1)',
+                          ],
+                          borderWidth: 1,
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                        },
+                        title: {
+                          display: true,
+                          text: 'Status das Notas Fiscais',
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-gray-500">
+                    Carregando dados do gráfico...
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="vencimentos">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Arquivos Processados Recentemente
+                <Calendar className="h-5 w-5" />
+                Top 20 Vencimentos Próximos
               </CardTitle>
+              <CardDescription>
+                Notas fiscais com vencimento nos próximos dias
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {recentFiles.length > 0 ? (
-                  recentFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium truncate block">{file.nome}</span>
-                        <span className="text-xs text-gray-500">{file.data} - {file.status}</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nenhum arquivo processado ainda</p>
-                  </div>
-                )}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Cliente</th>
+                      <th className="text-left p-2">Nota Fiscal</th>
+                      <th className="text-left p-2">Valor</th>
+                      <th className="text-left p-2">Vencimento</th>
+                      <th className="text-left p-2">Dias Restantes</th>
+                      <th className="text-left p-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboardData.vencimentosProximos?.map((item, index) => (
+                      <tr key={index} className="border-b hover:bg-gray-50">
+                        <td className="p-2">{item.cliente}</td>
+                        <td className="p-2">{item.numeroNota}</td>
+                        <td className="p-2">{formatCurrency(item.valor)}</td>
+                        <td className="p-2">{item.vencimento}</td>
+                        <td className="p-2">
+                          <Badge variant={item.diasRestantes <= 3 ? "destructive" : item.diasRestantes <= 7 ? "secondary" : "default"}>
+                            {item.diasRestantes} dias
+                          </Badge>
+                        </td>
+                        <td className="p-2">
+                          <Badge className={getStatusColor(item.status)}>
+                            {item.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    )) || (
+                      <tr>
+                        <td colSpan="6" className="text-center py-8 text-gray-500">
+                          Nenhum vencimento próximo encontrado
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-              <div className="mt-4 pt-4 border-t">
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="acoes">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Recent Files */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Arquivos Recentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {recentFiles.length > 0 ? (
+                    recentFiles.map((file, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-medium truncate block">{file.nome}</span>
+                          <span className="text-xs text-gray-500">{file.data} - {file.status}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Nenhum arquivo processado ainda</p>
+                    </div>
+                  )}
+                </div>
+                <Separator className="my-4" />
                 <Button variant="outline" size="sm" className="w-full">
                   <Download className="mr-2 h-4 w-4" />
                   Ver Todos os Registros
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações Rápidas</CardTitle>
-            <CardDescription>
-              Acesso rápido às funcionalidades mais utilizadas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-              <Button className="h-20 flex-col gap-2">
-                <FileText className="h-6 w-6" />
-                <span>Processar PDF</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2">
-                <Download className="h-6 w-6" />
-                <span>Exportar Excel</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2">
-                <Users className="h-6 w-6" />
-                <span>Gerenciar Usuários</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2">
-                <TrendingUp className="h-6 w-6" />
-                <span>Relatórios</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Ações Rápidas</CardTitle>
+                <CardDescription>
+                  Acesso rápido às funcionalidades mais utilizadas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                  <Button className="h-16 flex items-center justify-start gap-3">
+                    <FileText className="h-6 w-6" />
+                    <div className="text-left">
+                      <div className="font-medium">Processar PDF</div>
+                      <div className="text-xs opacity-70">Upload e análise</div>
+                    </div>
+                  </Button>
+                  <Button variant="outline" className="h-16 flex items-center justify-start gap-3">
+                    <Download className="h-6 w-6" />
+                    <div className="text-left">
+                      <div className="font-medium">Exportar Excel</div>
+                      <div className="text-xs opacity-70">Relatórios completos</div>
+                    </div>
+                  </Button>
+                  <Button variant="outline" className="h-16 flex items-center justify-start gap-3">
+                    <Users className="h-6 w-6" />
+                    <div className="text-left">
+                      <div className="font-medium">Gerenciar Usuários</div>
+                      <div className="text-xs opacity-70">Controle de acesso</div>
+                    </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* System Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Status do Sistema
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">API Backend</span>
+                  <Badge className="bg-green-100 text-green-800">Online</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Banco de Dados</span>
+                  <Badge className="bg-green-100 text-green-800">Conectado</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Google Sheets</span>
+                  <Badge className="bg-yellow-100 text-yellow-800">Sincronizando</Badge>
+                </div>
+                <Separator />
+                <div className="text-xs text-gray-500">
+                  Última atualização: {new Date().toLocaleString('pt-BR')}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

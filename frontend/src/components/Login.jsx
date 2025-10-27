@@ -4,7 +4,10 @@ import { signIn, resetPassword, createAdminUser } from '../lib/supabase'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Eye, EyeOff } from 'lucide-react'
+import { Alert, AlertDescription } from './ui/alert'
+import { Badge } from './ui/badge'
+import { Separator } from './ui/separator'
+import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -24,69 +27,25 @@ const Login = () => {
     setError('')
 
     try {
-      // Verificar se é o email do administrador
-      if (email === 'obedys.ia@gmail.com') {
-        console.log('Tentativa de login do administrador')
-        
-        // Tentar fazer login diretamente
-        const { data: loginData, error: loginError } = await signIn(email, password)
-        
-        if (loginError) {
-          console.log('Erro no login, tentando criar usuário administrador...')
-          
-          // Tentar criar o usuário administrador
-          const { data: createData, error: createError } = await createAdminUser(email, password)
-          
-          if (createError) {
-            console.error('Erro ao criar usuário administrador:', createError)
-            if (createError.message.includes('User already registered')) {
-              setError('Usuário já existe. Verifique sua senha.')
-            } else {
-              setError('Erro ao criar usuário administrador: ' + createError.message)
-            }
-            return
-          }
-          
-          if (createData && createData.user) {
-            console.log('Usuário administrador criado com sucesso')
-            // Aguardar um pouco e tentar login novamente
-            await new Promise(resolve => setTimeout(resolve, 2000))
-            
-            const { data: secondLoginData, error: secondLoginError } = await signIn(email, password)
-            
-            if (secondLoginError) {
-              console.error('Erro no segundo login:', secondLoginError)
-              setError('Usuário criado, mas erro no login: ' + secondLoginError.message)
-              return
-            }
-            
-            if (secondLoginData.user) {
-              console.log('Login do administrador bem-sucedido após criação')
-              return
-            }
-          }
-        } else if (loginData.user) {
-          // Login bem-sucedido na primeira tentativa
-          console.log('Login do administrador bem-sucedido')
-          return
-        }
-      }
-
-      // Para usuários não administradores, fazer login normal
       const { data, error } = await signIn(email, password)
       
       if (error) {
-        console.error('Erro no login:', error)
-        setError('Email ou senha incorretos')
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Email ou senha incorretos. Verifique suas credenciais.')
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Email não confirmado. Verifique sua caixa de entrada.')
+        } else {
+          setError(error.message)
+        }
         return
       }
 
-      if (data.user) {
-        console.log('Login bem-sucedido')
+      if (data?.user) {
+        navigate('/dashboard')
       }
     } catch (error) {
-      console.error('Erro inesperado no login:', error)
-      setError('Erro inesperado. Tente novamente.')
+      console.error('Erro no login:', error)
+      setError('Erro interno do servidor. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -95,55 +54,81 @@ const Login = () => {
   const handleForgotPassword = async (e) => {
     e.preventDefault()
     setResetLoading(true)
-    setResetMessage('')
     setError('')
+    setResetMessage('')
 
     try {
       const { error } = await resetPassword(resetEmail)
       
       if (error) {
-        setError('Erro ao enviar email de recuperação. Verifique o email informado.')
-        return
+        setError(error.message)
+      } else {
+        setResetMessage('Email de recuperação enviado! Verifique sua caixa de entrada.')
       }
-
-      setResetMessage('Email de recuperação enviado! Verifique sua caixa de entrada.')
-      setTimeout(() => {
-        setShowForgotPassword(false)
-        setResetMessage('')
-        setResetEmail('')
-      }, 3000)
-    } catch (err) {
+    } catch (error) {
+      console.error('Erro ao enviar email de recuperação:', error)
       setError('Erro ao enviar email de recuperação. Tente novamente.')
     } finally {
       setResetLoading(false)
     }
   }
 
+  const handleCreateAdmin = async () => {
+    try {
+      const result = await createAdminUser()
+      if (result.success) {
+        alert('Usuário administrador criado com sucesso!')
+      } else {
+        alert('Erro: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Erro ao criar admin:', error)
+      alert('Erro ao criar usuário administrador')
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-4">
       <div className="w-full max-w-md">
+        {/* Header com Logo */}
         <div className="text-center mb-8">
-          <img 
-            src="/logocanhotos.png" 
-            alt="CHECKNF - GDM" 
-            className="h-20 w-20 mx-auto mb-4"
-          />
-          <h1 className="text-3xl font-bold text-green-800">CHECKNF - GDM</h1>
-          <p className="text-green-600 mt-2">Sistema de Gestão de Notas Fiscais</p>
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full blur-lg opacity-30 animate-pulse"></div>
+            <img 
+              src="/logocanhotos.png" 
+              alt="CHECKNF - GDM" 
+              className="relative h-20 w-20 mx-auto mb-4 rounded-full shadow-lg"
+            />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">
+            CHECKNF
+          </h1>
+          <Badge variant="secondary" className="mt-2 bg-green-100 text-green-800 hover:bg-green-200">
+            Sistema de Gestão de Notas Fiscais
+          </Badge>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Fazer Login</CardTitle>
-            <CardDescription>
-              Entre com suas credenciais para acessar o sistema
+        {/* Card Principal */}
+        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-2xl font-bold text-center text-gray-800">
+              {showForgotPassword ? 'Recuperar Senha' : 'Fazer Login'}
+            </CardTitle>
+            <CardDescription className="text-center text-gray-600">
+              {showForgotPassword 
+                ? 'Digite seu email para receber as instruções de recuperação'
+                : 'Entre com suas credenciais para acessar o sistema'
+              }
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          
+          <CardContent className="space-y-6">
             {!showForgotPassword ? (
               <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">
+                {/* Campo Email */}
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
                     Email
                   </label>
                   <Input
@@ -152,12 +137,15 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="seu@email.com"
+                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium mb-2">
+                {/* Campo Senha */}
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
                     Senha
                   </label>
                   <div className="relative">
@@ -167,37 +155,51 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Sua senha"
+                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-green-500"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
 
+                {/* Mensagem de Erro */}
                 {error && (
-                  <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                    {error}
-                  </div>
+                  <Alert variant="destructive" className="border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-red-800">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
                 )}
 
+                {/* Botão de Login */}
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full h-11 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl" 
                   disabled={loading}
                 >
-                  {loading ? 'Entrando...' : 'Entrar'}
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Entrando...
+                    </div>
+                  ) : (
+                    'Entrar'
+                  )}
                 </Button>
 
+                {/* Link Esqueceu Senha */}
                 <div className="text-center">
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(true)}
-                    className="text-sm text-green-600 hover:text-green-800 underline"
+                    className="text-sm text-green-600 hover:text-green-800 underline transition-colors"
                   >
                     Esqueceu sua senha?
                   </button>
@@ -205,8 +207,10 @@ const Login = () => {
               </form>
             ) : (
               <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div>
-                  <label htmlFor="resetEmail" className="block text-sm font-medium mb-2">
+                {/* Campo Email para Reset */}
+                <div className="space-y-2">
+                  <label htmlFor="resetEmail" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
                     Email para recuperação
                   </label>
                   <Input
@@ -215,53 +219,74 @@ const Login = () => {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="seu@email.com"
+                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </div>
 
+                {/* Mensagem de Erro */}
                 {error && (
-                  <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                    {error}
-                  </div>
+                  <Alert variant="destructive" className="border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-red-800">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
                 )}
 
+                {/* Mensagem de Sucesso */}
                 {resetMessage && (
-                  <div className="text-green-600 text-sm bg-green-50 p-3 rounded-md">
-                    {resetMessage}
-                  </div>
+                  <Alert className="border-green-200 bg-green-50">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      {resetMessage}
+                    </AlertDescription>
+                  </Alert>
                 )}
 
+                {/* Botão Enviar */}
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full h-11 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl" 
                   disabled={resetLoading}
                 >
-                  {resetLoading ? 'Enviando...' : 'Enviar Email de Recuperação'}
+                  {resetLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Enviando...
+                    </div>
+                  ) : (
+                    'Enviar Email de Recuperação'
+                  )}
                 </Button>
 
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForgotPassword(false)
-                      setResetEmail('')
-                      setResetMessage('')
-                      setError('')
-                    }}
-                    className="text-sm text-green-600 hover:text-green-800 underline"
-                  >
-                    Voltar ao login
-                  </button>
-                </div>
+                {/* Voltar ao Login */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowForgotPassword(false)
+                    setResetEmail('')
+                    setResetMessage('')
+                    setError('')
+                  }}
+                  className="w-full h-11 border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar ao login
+                </Button>
               </form>
             )}
 
-            <div className="mt-6 text-center">
+            <Separator className="my-6" />
+
+            {/* Link para Registro */}
+            <div className="text-center">
               <p className="text-sm text-gray-600">
                 Não tem uma conta?{' '}
                 <button
                   onClick={() => navigate('/register')}
-                  className="text-green-600 hover:text-green-800 font-medium"
+                  className="text-green-600 hover:text-green-800 font-medium underline transition-colors"
                 >
                   Registre-se aqui
                 </button>
@@ -270,13 +295,52 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        <div className="mt-6 text-xs text-gray-500 text-center">
-          <p>Tipos de usuário:</p>
-          <p><strong>Administrador:</strong> Acesso completo ao sistema</p>
-          <p><strong>Colaborador:</strong> Acesso a registros e relatórios</p>
-          <p><strong>Fretista:</strong> Acesso apenas ao próprio perfil</p>
-          <p><strong>Gerência:</strong> Acesso a dashboards e relatórios</p>
-        </div>
+        {/* Informações dos Tipos de Usuário */}
+        <Card className="mt-6 bg-white/60 backdrop-blur-sm border-gray-200">
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">Tipos de Usuário</h3>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="space-y-2">
+                <Badge variant="outline" className="w-full justify-center bg-blue-50 text-blue-700 border-blue-200">
+                  Administrador
+                </Badge>
+                <p className="text-gray-600 text-center">Acesso completo</p>
+              </div>
+              <div className="space-y-2">
+                <Badge variant="outline" className="w-full justify-center bg-green-50 text-green-700 border-green-200">
+                  Colaborador
+                </Badge>
+                <p className="text-gray-600 text-center">Registros e relatórios</p>
+              </div>
+              <div className="space-y-2">
+                <Badge variant="outline" className="w-full justify-center bg-orange-50 text-orange-700 border-orange-200">
+                  Fretista
+                </Badge>
+                <p className="text-gray-600 text-center">Próprio perfil</p>
+              </div>
+              <div className="space-y-2">
+                <Badge variant="outline" className="w-full justify-center bg-purple-50 text-purple-700 border-purple-200">
+                  Gerência
+                </Badge>
+                <p className="text-gray-600 text-center">Dashboards</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Botão Admin (apenas para desenvolvimento) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 text-center">
+            <Button
+              onClick={handleCreateAdmin}
+              variant="outline"
+              size="sm"
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              Criar Admin (Dev)
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

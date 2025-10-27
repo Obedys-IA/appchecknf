@@ -26,14 +26,16 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           
           {/* Rotas protegidas */}
+          {/* Dashboard - Acesso para administrador, gerencia e colaborador */}
           <Route path="/dashboard" element={
-            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'gerencia']}>
+            <ProtectedRoute allowedTypes={['administrador', 'gerencia', 'colaborador']}>
               <Layout>
                 <Dashboard />
               </Layout>
             </ProtectedRoute>
           } />
           
+          {/* Processar PDFs - Apenas administrador e colaborador */}
           <Route path="/processar" element={
             <ProtectedRoute allowedTypes={['administrador', 'colaborador']}>
               <Layout>
@@ -42,22 +44,25 @@ function App() {
             </ProtectedRoute>
           } />
           
+          {/* Registros - Acesso para administrador, gerencia e colaborador */}
           <Route path="/registros" element={
-            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'gerencia']}>
+            <ProtectedRoute allowedTypes={['administrador', 'gerencia', 'colaborador']}>
               <Layout>
                 <Registros />
               </Layout>
             </ProtectedRoute>
           } />
           
+          {/* Relatórios - Acesso para administrador, gerencia e colaborador */}
           <Route path="/relatorios" element={
-            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'gerencia']}>
+            <ProtectedRoute allowedTypes={['administrador', 'gerencia', 'colaborador']}>
               <Layout>
                 <Relatorios />
               </Layout>
             </ProtectedRoute>
           } />
           
+          {/* Gestão de Usuários - Apenas administrador */}
           <Route path="/usuarios" element={
             <ProtectedRoute allowedTypes={['administrador']}>
               <Layout>
@@ -66,14 +71,16 @@ function App() {
             </ProtectedRoute>
           } />
           
+          {/* Perfil - Todos os tipos de usuário, incluindo novos/pendentes */}
           <Route path="/perfil" element={
-            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'fretista', 'gerencia']}>
+            <ProtectedRoute allowedTypes={['administrador', 'gerencia', 'colaborador', 'fretista', 'novo']}>
               <Layout>
                 <Perfil />
               </Layout>
             </ProtectedRoute>
           } />
           
+          {/* Configurações - Apenas administrador */}
           <Route path="/configuracoes" element={
             <ProtectedRoute allowedTypes={['administrador']}>
               <Layout>

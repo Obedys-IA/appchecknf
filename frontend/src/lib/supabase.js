@@ -41,42 +41,38 @@ export const signUp = async (email, password, userData) => {
 // Função para buscar dados do usuário na tabela usuarios
 export const getUserData = async (userId) => {
   try {
-    const { data, error } = await supabase
+    // Primeiro, tentar buscar pelo ID do auth
+    let { data, error } = await supabase
       .from('usuarios')
       .select('*')
       .eq('id', userId)
       .single()
     
-    // Se houver erro de RLS ou dados não encontrados, usar fallback
-    if (error || !data) {
-      console.warn('Erro ao buscar dados do usuário, usando fallback:', error)
-      
-      // Fallback temporário - dados básicos do usuário
-      const fallbackData = {
-        id: userId,
-        email: null, // Será preenchido pelo auth
-        nome: 'Usuário',
-        tipo: 'colaborador', // Tipo padrão temporário
-        created_at: new Date().toISOString()
+    // Se não encontrar pelo ID, tentar buscar pelo email
+    if (error && error.code === 'PGRST116') {
+      console.log('Usuário não encontrado pelo ID, tentando buscar pelo email...')
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email) {
+        const result = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('email', user.email)
+          .single()
+        
+        data = result.data
+        error = result.error
       }
-      
-      return { data: fallbackData, error: null }
     }
     
-    return { data, error }
+    if (error) {
+      console.error('Erro ao buscar dados do usuário:', error)
+      return { data: null, error }
+    }
+    
+    return { data, error: null }
   } catch (err) {
     console.error('Erro na função getUserData:', err)
-    
-    // Fallback em caso de erro crítico
-    const fallbackData = {
-      id: userId,
-      email: null,
-      nome: 'Usuário',
-      tipo: 'colaborador',
-      created_at: new Date().toISOString()
-    }
-    
-    return { data: fallbackData, error: null }
+    return { data: null, error: err }
   }
 }
 
