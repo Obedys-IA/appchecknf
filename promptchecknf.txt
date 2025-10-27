@@ -1,0 +1,733 @@
+CRIAR APP WEB RESPONSIVO
+
+NOME DO APLICATIVO: CHECKNF - GDM
+
+FRAMEWORK:
+REACT
+
+LIGUAGEM:
+TYPERSCRIPT
+
+BANCO DE DADOS:
+GOOGLE SHEETS
+SUPABASE
+
+HOSPEDAGEM:
+VERCEL
+
+CONTEXTUALIZANDO INFORMAÇÕES:
+Canhoto = Nota fiscal
+Cliente = Nome Fantasia
+Dias em atraso = Quantos dias após a data de emissão, ou seja, se o registro da nota tem como data de emissão dia 02/10/2025 e hoje é 14/10/2025, então são 12 dias em atraso
+Dias a Vencer = diferença entre a data atual em relação a data de vencimento da nota, exemplo: hoje é 14/10/2025, vencimento é 24/10/2025, então dias a vencer é 10 dias.
+
+DEFINIÇÃO:
+Serão 7 TELAS:
+
+1. Login
+2. Dashboard
+3. Upload
+4. Registros
+5. Relatórios
+6. Perfil
+7. Configurações
+
+--------------
+
+Segue as listas:
+
+Lista de Clientes:
+
+Razão Social CNPJ Nome Fantasia Rede UF Vendedor SENDAS DISTRIBUIDORA S/A 06.057.223/0315-65 Assai Juazeiro Assai BA Antonio SENDAS DISTRIBUIDORA S/A 06.057.223/0477-20 Assai Petrolina Assai PE Antonio SENDAS DISTRIBUIDORA S/A 06.057.223/0407-18 Assai Sr Do Bonfim Assai BA Antonio SENDAS DISTRIBUIDORA S/A 06.057.223/0470-54 Assai Barris Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0483-79 Assai Cabula Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0361-09 Assai Calcada Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0383-06 Assai Camacari Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0406-37 Assai Cidade Nova Assai BA Nixon SENDAS DISTRIBUIDORA 06.057.223/0314-84 Assai Feira Sobradinho Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0541-82 Assai Paralela Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0518-33 Assai Inacio Barbosa Assai SE Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0313-01 Assai Jequie Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0324-56 Assai Lauro De Freitas Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0552-35 Assai Luis Anselmo Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0424-19 Assai Mussurunga Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0299-00 Assai Norte Assai SE Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0322-94 Assai Paripe Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0381-44 Assai Pau Da Lima Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0364-43 Assai Porto Assai SE Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0478-01 Assai Socorro Assai SE Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0404-75 Assai Sul Assai SE Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0451-91 Assai Tomba Assai BA Nixon SENDAS DISTRIBUIDORA S/A 06.057.223/0484-50 Assai Vasco Da Gama Assai BA Nixon ATACADAO S.A. 75.315.333/0244-74 Atac Petrolina Atacadão PE Antonio ATACADAO S.A 75.315.333/0165-36 Atac Camacari Atacadão BA Nixon ATACADAO S.A 75.315.333/0086-06 Atac Sao Bernardo Atacadão BA Nixon WMS SUPERMERCADOS DO BRASIL LTDA. 93.209.765/0500-50 Maxxi Camaçari Atacadão BA Nixon ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0012-00 Atakarejo Alagoinha Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0044-98 Atakarejo Aracaju Atakarejo SE Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0019-87 Atakarejo Baixa De Quintas Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0002-39 Atakarejo Boca Do Rio Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0013-91 Atakarejo Camacari Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0021-00 Atakarejo Cd Simoes Filho Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0050-36 Atakarejo Cd Vitoria Da Conquista Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0032-54 Atakarejo Vasco Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0016-34 Atakarejo Feira De Santana Atakarejo BA Ricardo ATAKAREJO DIST DE ALIMENTOS E BEBIDAS EI 73.849.952/0001-58 Atakarejo Iguatemi Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0034-16 Atakarejo Ilha Atakarejo BA Ricardo ATAKAREJO ITACIMIRIM 73.849.952/0031-73 Atakarejo Itacimirim Atakarejo BA Ricardo ATAKAREJO DIST DE ALIMENTOS E BEBIDAS EI 73.849.952/0003-10 Atakarejo Lauro Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0029-59 Atakarejo Patamares Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0039-20 Atakarejo Pinto De Aguiar Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0015-53 Atakarejo Pernambues Atakarejo BA Ricardo ATAKAREJO DIST DE ALIMENTOS E BEBIDAS 73.849.952/0009-05 Atakarejo Piata Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0017-15 Atakarejo Salvador Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0047-30 Atakarejo Sao Goncalo Dos Campos Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0014-72 Atakarejo Simoes Filho Atakarejo BA Ricardo ATAKAREJO DISTRIBUIDOR DE ALIMENTOS E BEBIDAS S.A 73.849.952/0036-88 Atakarejo Vitoria Da Conquista Atakarejo BA Ricardo SUPERMERCADO BOMBOM LTDA 04.136.442/0002-00 Sup Bombom Lagarto Bombom SE Vinicius SUPERMERCADO BOMBOM LTDA 04.136.442/0001-10 Sup Bombom Estancia Bombom SE Vinicius SUPERMERCADO BOMBOM LTDA 04.136.442/0003-82 Sup Bombom Aracaju Bombom SE Vinicius CDP SUPERMERCADOS LTDA 43.941.941/0007-28 Cdp Alagoinhas Loja 11 Cesta Do Povo BA Ricardo CDP SUPERMERCADOS LTDA 43.941.941/0002-13 Cdp Armacao Stiep Loja 14 Cesta Do Povo BA Ricardo SUPERMERCADO BOCA DO RIO EIRELI 31.977.294/0001-30 Cdp Boca Do Rio Loja 07 Cesta Do Povo BA Ricardo SUPERMERCADO CATU LTDA 39.869.867/0001-13 Cdp Catu Loja 12 Cesta Do Povo BA Ricardo DISTRIBUIDORA DE ALIMENTOS NORTE LTDA 07.803.111/0001-85 Cdp Cd Monte Libano Cesta Do Povo BA Ricardo CDP SUPERMERCADOS LTDA 43.941.941/0016-19 Cdp Centro - Sede Cesta Do Povo BA Ricardo CDP SUPERMERCADOS LTDA 43.941.941/0018-80 Cdp Centro Dias Davila Cesta Do Povo BA Ricardo CDP SUPERMERCADOS LTDA 43.941.941/0017-08 Cdp Genaro Dias Davila Cesta Do Povo BA Ricardo CESTA DO POVO RODOVIARIA 43.941.941/0013-76 Cdp Rodoviaria Loja 17 Cesta Do Povo BA Ricardo SETE PORTAS SUPERMERCADOS LTDA 36.613.171/0001-33 Cdp Sete Portas Loja 09 Cesta Do Povo BA Ricardo CDP SUPERMERCADOS LTDA 43.941.941/0006-47 Cdp Super Centro Mata Loja 10 Cesta Do Povo BA Ricardo CDP SUPERMERCADOS LTDA 43.941.941/0014-57 Cesta Do Povo Boca Do Rio Cesta Do Povo BA Ricardo CDP SUPERMERCADOS LTDA 43.941.941/0004-85 Cesta Do Povo Brotas Cesta Do Povo BA Ricardo DELI E CIA DELICATESSEN LTDA 08.957.752/0001-57 Deli E Cia Graca Deli E Cia BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA 03.705.630/0011-21 Dist Sao Roque Calumbi Dist Sao Roque BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA 03.705.630/0013-93 Dist Sao Roque Conceicao Dist Sao Roque BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA 03.705.630/0004-00 Dist Sao Roque Mangabeira Dist Sao Roque BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA 03.705.630/0005-83 Dist Sao Roque Sim Dist Sao Roque BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS S 03.705.630/0001-50 Dist Sao Roque Sta Monica Dist Sao Roque BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA 03.705.630/0014-74 Sao Roque Artemia Pires Dist Sao Roque BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA 03.705.630/0015-55 São Roque Av Getulio Vargas Dist Sao Roque BA Ricardo DISTRIBUIDORA DE PRODUTOS ALIMENTICIOS SAO ROQUE LTDA 03.705.630/0002-30 São Roque Castro Alves Dist Sao Roque BA Ricardo MULTICOM ATACADO E VAREJO S/A 28.548.486/0024-02 Economart Feira De Santana Economart BA Ricardo MULTICOM ATACADO E VAREJO S/A 28.548.486/0021-60 Economart Jequie Economart BA Ricardo MULTICOM ATACADO E VAREJO S/A 28.548.486/0014-30 Economart Vitoria Da Conquista Economart BA Ricardo JOSE ORICELIO FURTADO ME 08.473.979/0001-27 Feirao Das Frutas Atras Da Banca Feirao Das Frutas PE Antonio HORTIFRUTI FEIRAO DAS FRUTAS LTDA 08.473.979/0002-08 Feirao Das Frutas Maria Auxiliadora Feirao Das Frutas PE Antonio CENCOSUD BRASIL COMERCIAL SA 39.346.861/0194-23 GBarbosa Juazeiro Centro G Barbosa BA Antonio CENCOSUD BRASIL COMERCIAL SA 39.346.861/0182-90 GBarbosa Juazeiro Santo Antonio G Barbosa BA Antonio CENCOSUD BRASIL COMERCIAL S.A 39.346.861/0103-96 GBarbosa Farolandia G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0116-00 GBarbosa - Rio Mar G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0033-49 GBarbosa Francisco Porto G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0138-16 GBarbosa Iguatemi G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0023-77 GBarbosa J. C. De Araujo G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0048-25 Gbarbosa 015 Feira De Santana G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0070-93 Gbarbosa 016 Feira De Santana G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0047-44 Gbarbosa 017 Feira De Santana G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0059-88 Gbarbosa 029 Brotas G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0078-40 Gbarbosa 035 Costa Azul G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0056-35 Gbarbosa 037 Alagoinhas G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0052-01 Gbarbosa 038 Alagoinhas G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0111-04 Gbarbosa 074 Sobradinho G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0113-68 Gbarbosa 076 Tomba G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0143-83 Gbarbosa 108 Lauro De Freitas G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0144-64 Gbarbosa 112 Vitoria Da Conquista G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0364-33 Gbarbosa Cd Bahia G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0001-61 Gbarbosa Cd Sergipe G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0072-55 Gbarbosa Hiper Sul G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL S.A 39.346.861/0040-78 Gbarbosa Jardins G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0451-81 Gbarbosa Luzia G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL S.A. 39.346.861/0043-10 Gbarbosa Sao Cristovao G Barbosa SE Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0196-95 Gbarbosa 139 Vitoria Da Conquista G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0415-18 Gbarbosa 274 Guarajuba G Barbosa BA Vinicius CENCOSUD BRASIL COMERCIAL SA 39.346.861/0432-19 Gbarbosa 302 Horto Bela Vista G Barbosa BA Vinicius SUPERMERCADO JABOTIANA LTDA 50.747.044/0001-58 Hiper Carne Jabotiana Hipercarnes SE Vinicius HIPER CARNE BARRA LTDA 44.069.669/0001-05 Hiper Carnes Barra Dos Coqueiros Hipercarnes SE Vinicius HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0033-33 Hiper Ideal Cd Hiperideal BA Ricardo SERRANA EMPREENDIMENTOS E PARTICIPACOES LTDA 02.212.937/0027-95 Hiperideal - Vitoria Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0036-86 Hiperideal Amazonas Hiperideal BA Ricardo SERRANA EMPREENDIMENTOS E PARTICIPACOES LTDA 02.212.937/0018-02 Hiperideal Armacao Av Simon Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0011-28 Hiperideal Barra Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0008-22 Hiperideal Buraquinho Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0032-52 Hiperideal Caminho Das Arvores Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0019-85 Hiperideal Canela Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0042-24 Hiperideal Feira De Santana Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0010-47 Hiperideal Graca Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0030-90 Hiperideal Guarajuba Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0034-14 Hiperideal Horto Vasco Da Gama Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0023-61 Hiperideal Itaigara Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0025-23 Hiperideal Jardim Apipema Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0022-80 Hiperideal Jardins ACM Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0026-04 Hiperideal Lj Piata Orlando Gomes Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0029-57 Hiperideal Orla Octavio Mang. Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0028-76 Hiperideal Parque Shopping Lauro Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0031-71 Hiperideal Patamares Ibirapitanga Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0013-90 Hiperideal Patamares Luis Viana Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0007-41 Hiperideal Piata Otavio Mangabeira Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0024-42 Hiperideal Pituba Manoel Dias Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0014-70 Hiperideal Praia Do Forte Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0012-09 Hiperideal Pituba Rua Ceara Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0017-13 Hiperideal Stella Capitao Melo Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0006-60 Hiperideal Stella Missionario Otto Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0009-03 Hiperideal Tororo Hiperideal BA Ricardo HIPERIDEAL EMPREENDIMENTOS LTDA 02.212.937/0021-08 Hiperideal Vila Laura Hiperideal BA Ricardo LWA COMERCIAL LTDA 31.432.054/0005-83 Massimo - Centro Massimo SE Vinicius LWA COMERCIAL LTDA 31.432.054/0002-30 Massimo Farolandia Massimo SE Vinicius LWA COMERCIAL LTDA 31.432.054/0001-50 Massimo Luzia Massimo SE Vinicius MATEUS SUPERMERCADOS S.A. 03.995.515/0258-28 Mateus Conceicao Do Coite Mateus BA Antonio MATEUS SUPERMERCADOS S.A. 03.995.515/0246-94 Mateus Jacobina Mateus BA Antonio MATEUS SUPERMERCADOS S.A. 03.995.515/0231-08 Mateus Juazeiro Mateus BA Antonio MATEUS SUPERMERCADOS S.A. 03.995.515/0244-22 Mateus Conquista Mateus BA Ricardo MATEUS SUPERMERCADOS S.A. 03.995.515/0248-56 Mateus Porto Seguro Mateus BA Ricardo MATEUS SUPERMERCADOS S.A. 03.995.515/0240-07 Mateus Teixeira De Freitas Mateus BA Ricardo MATEUS SUPERMERCADOS S.A. 03.995.515/0325-22 Mateus Aracaju Santa Monica Mateus SE Ricardo ARMAZEM MATEUS S.A. 23.439.441/0058-25 Mateus Cd - Feira De Santana/Ba Mateus BA Ricardo MATEUS SUPERMERCADOS S.A. 03.995.515/0271-03 Mateus Da Gloria Mateus SE Ricardo MATEUS SUPERMERCADOS S.A. 03.995.515/0237-01 Mateus Jose Conrado De Araujo Mateus SE Ricardo JUNIOR E OLIVEIRA LTDA 09.506.050/0002-09 Armazem Cecilio Mota Outros BA Antonio BONTEMPO SUPERMERCADO LTDA 00.889.627/0001-45 Bontempo Supermercados Outros PE Antonio RF SUPERMERCADO BRASIL LTDA 09.081.924/0005-68 Centro De Distribuicao Brasil Outros BA Antonio FRUTOS DA TERRA MINIMERCADO LTDA - ME 05.370.733/0001-31 Frutos Da Terra Outros PE Antonio JNS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA 24.333.585/0001-20 Mercadinho Economico Outros PE Antonio PERBONI S/A 04.940.750/0023-00 Perboni Juazeiro Ba Outros BA Antonio PGA COMERCIO ATACADISTA DE FRUTAS E VERDURAS EIRELI 21.553.781/0001-11 Pga Comercio Atacadista De Frutas E Verd Outros BA Antonio COMERCIAL DE ALIMENTOS FLOR DA CHAPADA LTDA 03.451.160/0001-45 Flor Da Chapada Outros BA Ricardo GRAL PANIFICACAO EIRELI 23.793.817/0001-60 Gral Paniville Outros BA Ricardo GRAN REALIZACOES LTDA 39.303.338/0001-58 Gran Hortifruti Outros BA Ricardo MEGGA DISTRIBUIDORA LTDA 07.488.144/0009-35 Megga Aracaju Outros SE Vinicius GA INDUSTRIA E COMERCIO DE ALIMENTOS LTDA 29.590.340/0001-00 GA Paris Delicatessen Outros BA Ricardo ROSELLY FERREIRA SALES DA SILVA LTDA 12.138.732/0003-93 Roselly Ferreira Sales Da Silva Ltda Outros BA Ricardo SUPERMERCADO JHONES LTDA 04.462.862/0001-97 Supermercado Jhones Outros BA Ricardo J MASCARENHAS ASSIS LTDA 05.743.186/0001-92 Supermercado Jl Outros BA Ricardo EXITO SUPERMERCADO LTDA 34.811.344/0001-00 Exito Supermercado Outros SE Vinicius KI DISTRIBUIDORA LTDA 43.506.193/0001-60 Ki Distribuidora E Atacado Outros SE Vinicius MEL DISTRIBUIDORA LTDA 50.911.223/0001-89 Mel Distribuidora Outros SE Vinicius PERINI COMERCIAL DE ALIMENTOS LTDA 11.965.515/0008-19 Perini Graca Perini BA Vinicius PERINI COMERCIAL DE ALIMENTOS LTDA 11.965.515/0009-08 Perini Pituba Perini BA Vinicius COAGELI - COMERCIAL DE GENEROS ALIMENTICIOS LTDA 07.348.911/0002-34 Coageli Lj 2 Centro Redemix BA Vinicius COGEALI COM DE GENEROS ALIMENTICIOS LTDA 07.348.911/0001-53 Cogeali Paripe Redemix BA Vinicius MASANI COM DE GENEROS ALIMENTICIOS LTDA 00.813.880/0001-15 Masani Com Redemix BA Vinicius PONTO VERDE COMERCIO DE ALIMENTOS LTDA 00.658.059/0002-52 Ponto Verde Iapi Redemix BA Vinicius PONTO VERDE COMERCIO DE ALIMENTOS LTDA 00.658.059/0001-71 Ponto Verde Sete Portas Redemix BA Vinicius PONTO VERDE COMERCIO DE ALIMENTOS LTDA 00.658.059/0003-33 Ponto Verde Vila Laura Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0016-50 Redemix Chame Chame Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0017-30 Redemix Rio Vermelho Redemix BA Vinicius RMIX COMERCIO GENEROS ALIMENTICIOS LTDA 06.337.087/0004-16 Rmix Alphaville 1 Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0007-69 Rmix Buraquinho Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0008-40 Rmix Horto Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LT 06.337.087/0003-35 Rmix Imbui Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0005-05 Rmix Itapua Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0011-45 Rmix Ondina Redemix BA Vinicius RMIX COMERC DE GENEROS ALIMENTICIOS LTDA 06.337.087/0002-54 Rmix Pituba Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0010-64 Rmix Pituba Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LT 06.337.087/0001-73 Rmix Simoes Filho Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0015-79 Rmix Stella Maris Redemix BA Vinicius RMIX COMERCIO DE GENEROS ALIMENTICIOS LTDA 06.337.087/0009-20 Rmix Vitoria Redemix BA Vinicius WMB SUPERMERCADOS DO BRASIL LTDA. 00.063.960/0561-55 Sams Aracaju Sams SE Vinicius WMB SUPERMERCADOS DO BRASIL LTDA 00.063.960/0574-70 Sams Bonoco Sams BA Vinicius WMB SUPERMERCADOS DO BRASIL LTDA. 00.063.960/0600-04 Sams Feira De Santana Sams BA Vinicius WMB SUPERMERCADOS DO BRASIL LTDA 00.063.960/0578-01 Sams Lauro De Freitas Sams BA Vinicius WALMART BRASIL LTDA 00.063.960/0048-64 Sams Pituba Sams BA Vinicius Outro (digitar)
+
+Observação1: quando o usuário escolher "Outro (digitar)", o aplicativo vai abrir uma tela modal, onde o usuário poderá digitar manualmente no registro. (vale para razao social, cnpj, nome fantasia, rede, uf e vendedor)
+Observação2: quando o aplicativo não encontrar na nota o CNPJ / CPF para associar o nome fantasia, o aplicativo automaticamente vai registrar com o nome razão social destacado como "CAMPO CONDIÇÃO" na nota modelosemplaca.pdf
+Observação3: na tela de configuração, o usuário administrador poderá cadastrar, alterar ou excluir qualquer item de lista, como: fretista, clientes, status, com todos os campos correlatos a cada tipo.
+
+Lista de Fretistas:
+
+Placa	Fretista
+BRY9A41	Anderson
+LST7H05	Andre
+QKY0D59	Danilo
+JOP0J97	Eden
+PJF6530	Ednilson
+OUO2501	Elvis
+OZM8C48	Elvis
+OLA8363	Elvis
+OEP9E84	Elvis
+OVS8H29	Elvis
+PJU8H76	Elvis
+PJA3D26	Gustavo
+PJS5H00	Gustavo
+LRC9H40	Danilo
+PLK2C22	Josenilson
+OSF8808	Natal
+JQB8F32	Paulo Noel
+JPX8747	Paulo Noel
+PEF3B50	Paulo Noel
+NVM5109	Paulo Noel
+DVA3G04	Paulo Noel
+PEY9D15	Paulo Noel
+PJI2I77	Paulo Noel
+ORI2G75	Paulo Noel
+JOU8522	Paulo Noel
+NZK8A92	Paulo Noel
+IAD5528	Paulo Noel
+OKV2567	Renato
+NYL1B84	Renato
+NZY7881	Renato
+PJN1652	Roque
+OES3C15	Danilo
+	Outro (Digitar)
+
+Observação1: quando o usuário escolher "Outro (digitar), o aplicativo vai abrir uma tela modal, onde o usuário poderá digitar manualmente no registro. (vale para a placa e para o fretista)
+Observação2: quando o aplicativo não encontrar na nota a placa para associar o fretista, o aplicativo automaticamente vai registrar como "Sem Identificação" na parte do fretista, e a placa ficará também como "Sem identificação"
+
+Lista de Status:
+
+Pendente
+Entregue
+Cancelada
+Devolvida
+Reenviada
+Paga
+Outro (digitar)
+
+Observação1: quando o usuário escolher "Outro (digitar), o aplicativo vai abrir uma tela modal, onde o usuário poderá digitar manualmente no registro. (vale para o Status)
+Observação2: CADA STATUS TERÁ UMA COR DIFERENTE, SEGUE PALETA DE CORES:
+Pendente (VERMELHO)
+Entregue (VERDE)
+Cancelada (PRETA)
+Devolvida (ROXO)
+Reenviada (AMARELA)
+Paga (AZUL ESCURO)
+Outro (digitar) (CINZA)
+
+Lista Situação:
+
+Vencimento Próximo
+Dentro do Prazo
+
+Lista REGRA DE CFOP: serão registradas apenas as notas que tiverem como CFOP os números:
+5100
+5101
+5102
+5103
+5104
+5105
+5106
+5107
+5108
+6100
+6101
+6102
+6103
+6104
+6105
+6106
+6107
+6108
+5400
+5401
+5402
+5403
+5404
+5405
+
+-----------
+
+TELA 1: LOGIN
+
+TELA DE LOGIN COM A SEÇÃO DE LOGIN E A SEÇÃO DE CADASTRO
+
+TIPO DE CADASTRO:
+
+NOME DO USUARIO + EMAIL + SENHA
+GOOGLE
+NOME DO USUARIO + TELEFONE + SENHA
+
+CONDIÇÃO: SENHA COM NO MINIMO 8 DIGITOS, COM PELO MENOS UM DIGITO LETRA MAIUSCULA, UM DIGITO LETRA MINUSCULA, UM NUMERO.
+
+HAVERÁ 5 TIPOS DE USUARIOS:
+USUARIO ADMINISTRADOR - TERÁ ACESSO TOTAL AO APLICATIVO, TODAS AS TELAS E FUNCIONALIDADES;-
+USUARIO COLABORADOR - TERÁ ACESSO TOTAL APENAS AS TELAS DE DASHBOARD, UPLOAD, REGISTROS, RELATÓRIOS E PERFIL
+USUARIO FRETISTA - SÓ TERÁ ACESSO A TELA DE RELATORIOS E PERFIL
+USUARIO GERENCIA - SO TERÁ ACESSO AS TELAS DE DASHBOARD E RELATORIOS
+USUARIO NOVO - SÓ TERÁ ACESSO A TELA DE PERFIL (PARA NOVOS USUARIOS CADASTRADOS)
+
+OBVIAMENTE, TODOS TERÃO ACESSO A TELA DE LOGIN.
+
+ADICIONAIS:
+
+TEM QUE APARECER O BOTAO DE VISUALIZAR SENHA QUANDO CLICADO;
+QUANDO NAO TIVER SEGUINDO A CONDIÇÃO DA SENHA, TEM QUE APARECER UMA MENSAGEM INFORMANDO QUE A SENHA NAO SEGUE O PADRÃO OBRIGATORIO (NO MINIMO 8 DIGITOS, COM LETRA MAIUSCULA, LETRA MINUSCULA E NUMERO;
+APOS O LOGIN SER EFETUADO COM SUCESSO, O USUARIO VAI PARA A TELA SPLASH QUE FICARÁ VISIVEL POR 3 SEGUNDOS ATÉ REDIRECIONAR O USUARIO AO APLICATIVO.
+USUARIO GERENCIA: IRÁ SER TRANSFERIDO PARA TELA DASHBOARD
+USUARIO FRETISTA: SERÁ TRANSFERIDO PARA A TELA PERFIL
+USUARIO COLABORADOR: SERÁ TRANSFERIDO PARA A TELA REGISTROS
+USUARIO ADMINISTRADOR: SERÁ TRANSFERIDO PARA A TELA REGISTROS
+USUARIO NOVO: SERÁ TRANSFERIDO PARA A TELA DE PERFIL
+
+----------
+
+TELA 2: DASHBOARD
+
+(divido em 3 partes)
+
+1º PARTE DA TELA - FILTROS:
+
+FILTRO DINAMICO (PODENDO DIGITAR QUALQUER COISA COMO BASE DE FILTRO)
+FILTRO POR PERÍODO (ENTRE DUAS DATAS)
+FILTRO POR PERÍODOS:
+ANO ATUAL
+ANO ANTERIOR
+MES ATUAL
+MES ANTERIOR
+SEMANA ATUAL
+SEMANA ANTERIOR
+DIA ATUAL
+DIA ANTERIOR
+
+TERÁ TAMBEM FILTROS POR:
+FRETISTA (da lista de fretistas - nome do fretista)
+PLACA (da lista de fretistas - nome da placa)
+CLIENTE (da lista de clientes - nome fantasia)
+REDE (da lista de clientes - nome da rede)
+VENDEDOR (da lista de clientes - nome do vendedor)
+UF (da lista de clientes - nome da UF)
+STATUS (da lista de status)
+SITUAÇÃO (da lista situação)
+
+2º PARTE DA TELA - CARDS:
+
+🎯 Cards Resumo (KPI Cards)
+
+🔵 Total de Notas Emitidas (Nº TOTAL DE NOTAS REGISTRADAS NO APLICATIVO, DE TODOS OS STATUS)
+🟢 Canhotos Recebidos (Nº DE NOTAS REGISTRADAS QUE CONSTAM COM O STATUS "ENTREGUE")
+🔴 Canhotos Pendentes  (Nº DE NOTAS REGISTRADAS QUE CONSTAM COM O STATUS "PENDENTE")
+⚫ Entregas Canceladas (Nº DE NOTAS REGISTRADAS QUE CONSTAM COM O STATUS "CANCELADA")
+🟣 Entregas Devolvidas (Nº DE NOTAS REGISTRADAS QUE CONSTAM COM O STATUS "DEVOLVIDA")
+📊 % de Canhotos Recebidos (eficiência quantidade de canhotos com status pendente dividido pela quantidade total de canhotos registrados independente do status)
+💰 Valor Pendente (soma total dos valores dos canhotos com status "PENDENTE"
+⏱️ Atrasadas (+7d) (nº de canhotos com mais de 7 dias com status pendente desde a sua data de emissão)
+
+Exemplo de visual:
+🔵 Total de NF: 1.200 | 🟢 NF Entregue: 960 | 🔴 NF Pendente: 180 | ⚫ NF Cancelada: 60 | 🟣 NF Devolvida: 60 | 📊 Eficiência: 80% | 💰 Valor Pendente: 579.7K | ⏱️ Atrasadas (+7d): 25 
+
+
+3º PARTE DA TELA - GRAFICOS:
+
+1.Gráfico de Barras – Evolução Temporal:
+Agrupar por status: Recebido / Pendente / Cancelado
+Filtros dentro do gráfico: Diário, Semanal, Mensal
+
+2.Gráfico de Pizza ou Donut – Distribuição por Status:
+Ideal para visualização rápida do percentual de cada tipo
+
+3.Gráfico de Linhas – Notas Pendentes por Fretista
+
+4.Gráfico de Linhas – Top 10 Clientes com mais notas Pendentes
+
+5. Tabela com Top 20 Vencimentos Próximos (Pendentes):
+NF | Cliente | Fretista	| Data Emissão | Data Vencimento | Valor | Dias Atraso | Dias p/ Vencer
+
+observação: organizar do mais próximo a vencer para o menos próximo.
+
+6.Informações Adicionais Úteis no Dashboard:
+Alertas automáticos: Canhotos com mais de 7 dias sem retorno
+Ranking (top 10) de Clientes com maior atraso nos canhotos
+Ranking (top 5) de Fretista com maior atraso nos canhotos
+Ranking Top (3) motoristas mais pontuais
+
+---------
+
+TELA 3: UPLOAD
+
+NESSA TELA É ONDE FICARÃO AS DUAS OPÇÕES DE IMPORTAÇÃO:
+
+1 - UPLOAD DE ARQUIVOS (PARA ENVIO DO ARQUIVO DA NOTA EM PDF PARA LEITURA OCR)
+2 - USAR CÂMERA (ONDE O USUARIO PODE ENVIAR UMA FOTO DA NOTA FISCAL PARA LEITURA OCR)
+
+OBSERVAÇÃO1: QUANDO O USUARIO ENVIAR UM ARQUIVO EM PDF QUE TENHA MAIS DE UMA PAGINA, OU SEJA, MAIS DE UMA NOTA FISCAL NO MESMO ARQUIVO, O SISTEMA FAÇA O REGISTRO DE CADA NOTA FISCAL SEPARADO. EXEMPLO: SE EU ENVIAR UM ARQUIVO COM 50 NOTAS FISCAIS, O SISTEMA VAI REGISTRAR AS INFORMAÇÕES DAS 50 NOTAS, E CADA NOTA É UM REGISTRO DIFERENTE E SEPARADO.
+
+
+Segue os campos que o aplicativo fará a leitura OCR na nota fiscal:
+
+observação: os campos para leitura, consulta e registro estão destacados no arquivo NFEXEMPLOCOMPLACA.pdf e NFEXEMPLOSEMPLACA.pdf
+
+DEVE SERA EXTRAIDO AS INFORMAÇÕES DOS SEGUINTES CAMPOS DAS NOTAS FISCAIS:
+
+NA PARTE DA NOTA (IDENTIFICAÇÃO DO EMITENTE), RETORNAR:
+CNPJ (apenas para consulta) retornar com o NOME FANTASIA associado a esse CNPJ (da lista de clientes) / NF-e retornar o numero da nota logo após o Nº. (sem os pontos, somente os números)
+
+NA PARTE DA NOTA (DESTINATÁRIO / REMETENTE), RETORNAR:
+DATA DA EMISSÃO, HORA DA SAÍDA/ENTRADA, CNPJ / CPF (apenas para consulta) retornar com o NOME FANTASIA associado a esse CNPJ (da lista de clientes)
+
+NA PARTE DA NOTA (FATURA / DUPLICATA), RETORNAR:
+Venc. (Vencimento)
+Valor (Valor total da NF)
+
+NA PARTE DA NOTA (TRANSPORTADOR / VOLUMES TRANSPORTADOS), RETORNAR:
+PLACA DO VEÍCULO retornar com o nome do FRETISTA associado a essa placa (da lista de fretistas)
+
+NA PARTE DA NOTA (DADOS DOS PRODUTOS / SERVIÇOS), RETORNAR:
+(apenas para consulta) para saber se a nota segue os critérios de CFOP para registro da nota ou desconsiderar a nota. Consultar lista REGRAS DE CFOP
+
+NA PARTE DA NOTA (DADOS ADICIONAIS), RETORNAR EM INFORMAÇÕES COMPLEMENTARES:
+PLACA retornar com o nome do FRETISTA associado a essa placa (da lista de fretistas)
+
+----------
+
+TELA 4: REGISTROS
+
+NESSA TELA TERÁ FILTROS, COMO:
+
+FILTRO DINAMICO (PODENDO DIGITAR QUALQUER COISA COMO BASE DE FILTRO)
+FILTRO POR PERÍODO (ENTRE DUAS DATAS)
+FILTRO POR PERÍODOS:
+ANO ATUAL
+ANO ANTERIOR
+MES ATUAL
+MES ANTERIOR
+SEMANA ATUAL
+SEMANA ANTERIOR
+DIA ATUAL
+DIA ANTERIOR
+
+TERÁ TAMBEM FILTROS POR:
+FRETISTA (da lista de fretistas - nome do fretista)
+PLACA (da lista de fretistas - nome da placa)
+CLIENTE (da lista de clientes - nome fantasia)
+REDE (da lista de clientes - nome da rede)
+VENDEDOR (da lista de clientes - nome do vendedor)
+UF (da lista de clientes - nome da UF)
+STATUS (da lista de status)
+SITUAÇÃO (da lista situação)
+
+nessa tela é possível visualizar, alterar e excluir qualquer registro já gerado.
+Nessa tela também terá os registros detalhados, e com os botões de:
+excluir (somente por usuários administradores)
+alterar (somente por usuários administradores)
+enviar via whatsapp o registro da nota individualmente
+
+Segue modelo de envio:
+
+📌 RESUMO DA NF "XXXXXXXXXX" (9 dígitos) - 📅 DATA DE EMISSÃO "XX-XX-XXXX"
+
+🚚 Fretista: "Danilo"
+👥 Cliente: "Delicia Graça"
+💲 Valor: "R$12.558,00"
+🚩 Status: "Pendente"
+⏳ Dias em atraso: "xx"
+📝 Observação: "Devolução de 2 caixas de kiwi Sungold por motivo de baixa qualidade"
+
+aqui ficará listado (Em tabela) todas as notas fiscais, em ordem de data de emissão e status (sempre ordenando do pendente primeiro em sequencia os cancelados, depois os devolvidos e por últimos os entregues. AS informações nessa lista que serão extraídas através das fotos ou arquivos pdf enviados:
+
+DEVE SER REGISTRADO ESSES DADOS EXTRAIDOS DAS NOTAS NA SEGUINTE ORDEM:
+
+DATA DA EMISSÃO // HORA DA SAÍDA/ENTRADA // Nº DA NF // Nome Fantasia (CAMPO QUE SE BASEARÁ NO CNPJ / CPF EXTRAÍDA DA NOTA, COMO NUM PROCV, OU SEJA, AO SER CONSULTADO O CNPJ / CPF, AUTOMATICAMENTE A PARTE DO NOME FANTASIA SERÁ PREENCHIDA BASEADA NA LISTA DE CLIENTES E REGISTRAR O NOME FANTASIA ASSOCIADO A ESSE CNPJ / CPF) Rede (consulta lista de clientes associado ao CNPJ / CPF) // UF (consulta lista de clientes associado ao CNPJ / CPF) // Vendedor (consulta lista de clientes associado ao CNPJ / CPF) // PLACA DO VEÍCULO // FRETISTA (CAMPO QUE SE BASEARÁ NA PLACA EXTRAÍDA DA NOTA, COMO NUM PROCV, OU SEJA, AO SER REGISTRADO UMA PLACA, AUTOMATICAMENTE A PARTE DO FRETISTA SERÁ PREENCHIDA BASEADA NA lISTA FRETISTAS) // Valor da nota // Data de Vencimento (Venc. (Vencimento) // Situação (Vem automaticamente preenchido com "Dentro do Prazo", mas será atualizado baseado na "data de vencimento". Se a partir de quando faltar apenas 10 dias para o vencimento da nota, este campo mudará para a situação "Vencimento Próximo")
+
+No geral, no arquivo NFEXEMPLOSEMPLACA.pdf lá explica direitinho onde estão cada campo e cada informação a consultar e registrar, jutamente com as listas de fretistas e clientes.
+
+Observação1: toda vez que o sistema extrair o dado da placa de uma nota fiscal, ele vai filtrar a informação do fretista na (lista de fretistas) e vai preencher automaticamente o campo "fretista)
+Observação2: toda nova nota registrada automaticamente é registrada com o status de "PENDENTE".
+Observação3: PARA ALTERAR NO REGISTRO O STATUS DE UMA NOTA, BASTA CLICAR NO "STATUS" QUE ELE MUDARÁ PARA O PROXIMO "STATUS" DA LISTA DE STATUS.
+Observação4: As notas com vencimento próximo serão afetadas com a cor "vermelha" em um gradiente, onde quanto mais próximo da data do vencimento, mais vermelho vai ficar o campo "Situação". Isso valerá a partir de quando faltar apenas 10 dias para o vencimento da nota.
+Observação4 :TODOS OS REGISTROS TERÃO UM BOTÃO DE "EDIÇÃO" ONDE O USUARIO ADMINISTRADOR e COLABORADOR PODERÁ ALTERAR QUALQUER INFORMAÇÃO DESSE REGISTRO DA NOTA.
+
+nessa tela terá um botão "Incluir" onde o usuário poderá incluir manualmente todas as informações necessárias para registrar um registro.
+
+---------------
+
+5 TELA: Relatórios:
+
+NESSA TELA TERÁ FILTROS, COMO:
+
+FILTRO DINAMICO (PODENDO DIGITAR QUALQUER COISA COMO BASE DE FILTRO)
+FILTRO POR PERÍODO (ENTRE DUAS DATAS)
+FILTRO POR PERÍODOS:
+ANO ATUAL
+ANO ANTERIOR
+MES ATUAL
+MES ANTERIOR
+SEMANA ATUAL
+SEMANA ANTERIOR
+DIA ATUAL
+DIA ANTERIOR
+
+TERÁ TAMBEM FILTROS POR:
+FRETISTA (da lista de fretistas - nome do fretista)
+PLACA (da lista de fretistas - nome da placa)
+CLIENTE (da lista de clientes - nome fantasia)
+REDE (da lista de clientes - nome da rede)
+VENDEDOR (da lista de clientes - nome do vendedor)
+UF (da lista de clientes - nome da UF)
+STATUS (da lista de status)
+SITUAÇÃO (da lista situação)
+
+
+NESSA TELA VAI TER TODOS OS REGISTROS E INFORMAÇÕES IMPORTADOS DAS NOTAS E TUDO QUE FOI ALTERADO, INCLUIDO OU MODIFICADO NA TELA DE "REVISÃO E REGISTROS". OU SEJA, TODOS OS DADOS ESTARÃO AQUI ORDENADOS E ORGANIZADOS COMO NUMA TABELA.
+
+SEGUE OS BOTÕES A SEREM CRIADOS:
+
+BOTÃO resumo 1 - "📝 RESUMO GERAL DIÁRIO"
+Envia um Resumo Simplificado para WhatsApp
+
+
+📝 RESUMO GERAL DOS CANHOTOS – ATUALIZAÇÃO 19/06/2025 (data do dia do resumo)
+
+🟢 Recebidos: 960
+🔴 Pendentes: 180
+⚫ Cancelados: 60
+🟣 Devolução Total: 20
+
+📈 Eficiência: 75%
+📅 Prazo médio de retorno: 4 dias
+
+🔔 Atrasados (+7 dias): 
+- Fretista A - NF 12345 - Cliente X
+- Fretista C - NF 67890 - Cliente Y
+
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+OBSERVAÇÃO3: PARA ESSE RESUMO: esse resumo na parte de "Atrasados (+7 dias)" deve ser gerado ordenado por Cliente (nome fantasia)
+
+
+BOTÃO resumo 2: "🚛 Resumo por Fretista"
+Envia um Resumo Simplificado para WhatsApp
+exemplo do resumo:
+
+
+📝 RESUMO DOS CANHOTOS POR FRETISTA – ATUALIZAÇÃO 19/06/2025 (data do dia do resumo)
+
+🚚 Fretista: João
+
+🟢 Canhotos Recebidos: 15
+🔴 Pendentes: 3
+⏱️ Média retorno: 2,8 dias
+
+📅 Emissão: Segunda-Feira, 16 de Junho de 2025 (data de emissão da nota)
+📌 Pendentes:
+- NF 33333 – Cliente X – 5 dias - R$ 1.158,50
+- NF 44444 – Cliente Y – 5 dias - R$ 560,00
+
+📅 Emissão: Terça-Feira, 17 de Junho de 2025 (data de emissão da nota)
+📌 Pendentes:
+- NF 55555 – Cliente X – 4 dias - R$ 561,00
+
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+
+
+BOTÃO resumo 3: "🏢 Resumo por Cliente"
+Envia um Resumo Simplificado para WhatsApp
+exemplo do resumo:
+
+
+📝 RESUMO DOS CANHOTOS POR CLIENTE – ATUALIZAÇÃO 19/06/2025 (data do dia do resumo)
+
+🏢 CLIENTE: Supermercado União
+
+🟢 Recebidos: 8
+🔴 Pendentes: 2
+⏱️ Média retorno: 2,8 dias
+
+📌 Pendentes:
+- NF 77777 – João – 5 dias - R$ 560,00
+- NF 88888 – Maria – 9 dias - R$ 1.158,50
+
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+
+
+BOTÃO resumo 4: "🧾 Resumo Semanal de Eficiência"
+exemplo do resumo:
+
+
+📅 SEMANA 10 A 16 JUNHO (filtra os últimos 7 dias)
+
+🚛 Fretistas Por Eficiência: (tempo de atraso x número de canhotos pendentes)
+1. Ana – 100%
+2. Carlos – 95%
+3. João – 92%
+4. Francisco - 90%
+5. Roberto - 87,5%
+6. Obedys - 56%
+7. Flavio - 46%
+8. Marcos - 44%
+9. Paulo - 37,7%
+10. Pedro - 36,2%
+11. Maria - 28%
+12. Junior - 13,1%
+
+🏢 Clientes com mais Pendências:
+👥 Cliente Z – 5 canhotos
+👥 Cliente A – 4 canhotos
+👥 Cliente B – 3 canhotos
+
+🚚 Fretistas com mais Pendências:
+🪪 José – 5 canhotos
+🪪 Roberto – 4 canhotos
+🪪 João – 3 canhotos
+
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+
+
+📝 RELATÓRIOS EM PDF:
+
+Botão PDF 1: "📄 Relatório Completo"
+
+1. 📄 Relatório Completo de Notas
+Período: selecionável (dia, semana, mês)
+No relatório vai constar:
+
+Cards (indicadores):
+Quantidade de notas por mês
+Total de Canhotos entregues (NOTAS COM STATUS "BAIXADA")
+Total de Canhotos Pendentes + dias de pendências (NOTAS COM STATUS "PENDENTE" + QUANTIDADE DE DIAS PASSADO DESDE A DATA DE EMISSÃO DA NOTA)
+Total Pendente em valor (SOMA DO VALOR TOTAL DAS NOTAS COM STATUS "PENDENTE")
+Tempo médio de retorno
+
+Gráficos:
+Pizza de status
+Evolução temporal
+
+Tabela completa: resumo geral
+Cliente, NF, Data Emissão, Fretista, Status, Dias em Atraso
+
+Tabela completa:
+Canhotos não retornados acima de 7 dias (contando após a data de emissão da nota)
+NF, Cliente, Fretista, Data de Emissão
+
+
+Assinatura do responsável (espaço para controle interno)
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+Observação3: no relatório tem que constar o Nome da empresa (FILIAL 0102 - TRIELO CD SIMÕES FILHO), a logo (IMAGEM EM ANEXO), data e hora do relatório, e o usuário que gerou.
+
+Botão PDF 2: "🧑‍💼 Relatório por Cliente"
+
+2. 🧑‍💼 Relatório por Cliente
+Filtro por nome do cliente
+No relatório vai constar:
+
+Cards (indicadores):
+Quantidade de notas por mês
+Total de Canhotos entregues (NOTAS COM STATUS "BAIXADA")
+Total de Canhotos Pendentes + dias de pendências (NOTAS COM STATUS "PENDENTE" + QUANTIDADE DE DIAS PASSADO DESDE A DATA DE EMISSÃO DA NOTA)
+Total Pendente em valor (SOMA DO VALOR TOTAL DAS NOTAS COM STATUS "PENDENTE")
+Tempo médio de retorno
+Ranking de performance por período
+	Utilize cores: Verde (ótimo), Amarelo (atenção), Vermelho (crítico)
+
+Gráficos:
+Pizza de status
+Evolução temporal
+
+Tabela completa: resumo geral
+Cliente, NF, Data Emissão, Fretista, Status, Dias em Atraso
+
+Tabela completa:
+Canhotos não retornados acima de 7 dias (contando após a data de emissão da nota)
+NF, Cliente, Fretista, Data de Emissão
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+Observação3: no relatório tem que constar o Nome da empresa (FILIAL 0102 - TRIELO CD SIMÕES FILHO), a logo (IMAGEM EM ANEXO), data e hora do relatório, e o usuário que gerou.
+
+Botão PDF 3: "🚛 Relatório por Fretista"
+
+3. 🚛 Relatório por Fretista
+No relatório vai constar:
+
+Cards (indicadores):
+Quantidade de notas por mês
+Total de Canhotos entregues (NOTAS COM STATUS "BAIXADA")
+Total de Canhotos Pendentes + dias de pendências (NOTAS COM STATUS "PENDENTE" + QUANTIDADE DE DIAS PASSADO DESDE A DATA DE EMISSÃO DA NOTA)
+Total Pendente em valor (SOMA DO VALOR TOTAL DAS NOTAS COM STATUS "PENDENTE")
+Tempo médio de retorno
+Ranking de performance por período
+	Utilize cores: Verde (ótimo), Amarelo (atenção), Vermelho (crítico)
+
+Gráficos:
+Pizza de status
+Evolução temporal
+
+Tabela completa: resumo geral
+Cliente, NF, Data Emissão, Fretista, Status, Dias em Atraso
+
+Tabela completa:
+Canhotos não retornados acima de 7 dias (contando após a data de emissão da nota)
+NF, Cliente, Fretista, Data de Emissão
+
+Assinatura do responsável (espaço para controle interno)
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+Observação3: no relatório tem que constar o Nome da empresa (FILIAL 0102 - TRIELO CD SIMÕES FILHO), a logo (IMAGEM EM ANEXO), data e hora do relatório, e o usuário que gerou.
+
+Botão PDF 4: " Relatório Crítico"
+
+4. 🚨 Relatório de Pendências Críticas
+Somente NFs com mais de 14 dias sem retorno
+
+Listada dessa forma:
+
+NF - Valor - Data de Emissão -Cliente - Fretista - Dias em Atraso - Observação
+
+observaçao1: usar emoticons e imagens para melhorar o visual do relatorio
+observação2: Relatório Personalizável, podendo ser alterado ao selecionar algum filtro antes de exportar
+Observação3: no relatório tem que constar o Nome da empresa (FILIAL 0102 - TRIELO CD SIMÕES FILHO), a logo (IMAGEM EM ANEXO), data e hora do relatório, e o usuário que gerou.
+
+
+bOTÃO - "Exportar Excel"
+gerar o relatório completo com todas as informações extraidas das notas, além das informações de status, comentários, observações e usuário.
+
+
+IMPLEMENTAÇÕES FINAIS:
+
+Integração com Google Drive / Sheets
+
+Notificações push para pendências acima de 7 dias
+EXEMPLO:
+
+🚨🚨🚨 ATENÇÃO 🚨🚨🚨 
+
+😱 ESSES FRETISTAS ESTÃO COM PENDÊNCIAS EM ATRASOS A MAIS DE 7 DIAS 😱
+
+🚚 Fretista "A" 🗃️ Nº DE PENDENCIAS "X" ⏰ TEMPO EM ATRASO "10 DIAS"
+🚚 Fretista "B" 🗃️ Nº DE PENDENCIAS "Y" ⏰ TEMPO EM ATRASO "8 DIAS"
+
+⚠️ FAVOR, COBRAR COM URGÊNCIA ⚠️
+
+----------------
+
+6 TELA: PERFIL
+
+Nessa tela terá os seguintes filtros:
+
+FILTRO DINAMICO (PODENDO DIGITAR QUALQUER COISA COMO BASE DE FILTRO)
+FILTRO POR PERÍODO (ENTRE DUAS DATAS)
+FILTRO POR PERÍODOS:
+ANO ATUAL
+ANO ANTERIOR
+MES ATUAL
+MES ANTERIOR
+SEMANA ATUAL
+SEMANA ANTERIOR
+DIA ATUAL
+DIA ANTERIOR
+
+TERÁ TAMBEM FILTROS POR:
+PLACA (da lista de fretistas - nome da placa)
+CLIENTE (da lista de clientes - nome fantasia)
+REDE (da lista de clientes - nome da rede)
+VENDEDOR (da lista de clientes - nome do vendedor)
+UF (da lista de clientes - nome da UF)
+STATUS (da lista de status)
+SITUAÇÃO (da lista situação)
+
+nessa tela para usuários do tipo "fretista" vai sofrer a influencia da configuração do fretista associado ao seu cadastro (na tela de configurações).
+
+nessa tela irá ter cards estatísticos com quantidade total de notas, notas entregues, notas pendentes, notas canceladas, notas devolvidas, etc.
+terá tambem em tabela a lista completa de notas (somente do status "Pendente") com o cliente, data de emissão, valor, dias em atraso, dias a vencer.
+nessa tela terá alertas de mensagens sinalizandos os canhotos mais antigos, e os canhotos mais próximos do vencimento, informando o numero da nota fiscal, cliente e a data de emissão
+
+observação1: para usuários do tipo colaborador e administrador, irá aparecer os registros de todos os fretistas, sem exceção.
+observação2: para usuários do tipo colaborador e administrador, irá aparecer mais um filtro (fretista).
+
+-----------------
+
+7 TELA: CONFIGURAÇÕES
+
+tela que somente o usuário administrador acessa;
+
+nessa tela o usuário administrador poderá cadastrar um novo usuario, excluir um usuário já cadastro ou alterar o tipo de usuário;
+
+nessa tela terá uma tabela de histórico, mostrando o usuario que acessou, que horas o usuário acessou, e qual tela acessou e o que realizou. será salvo somente no supabase e local;
+
+nessa tela o usuário terá o status se o aplicativo está conectado ao supabase e ao google sheets.
+
+nessa tela o usuário administrador pode cadastrar um novo cliente ou um novo fretista, da seguinte maneira:
+
+para novos clientes, os campos serão:
+nome razão social - CNPJ / cpf - cliente (nome fantasia) - rede - uf - vendedor
+
+para novos fretistas. os campos serão:
+palca - fretista
+
+esses dados ao serem preenchidos, irão ser atualizados na lista de clientes e de fretistas, assim como no banco de dados nas suas respectivas listas.
+
+Importante: nessa tela, o usuário administrador irá associar o usuário do tipo fretista a um fretista da lista de fretistas, sendo assim, quando o usuário fretista acessar a tela de perfil, lá ele so vai conseguir visualizar os registros e tudo mais do fretista atrelado ao seu cadastro de usuário. quem definirá será o administrador aqui pela tela de configurações, ou seja, nessa tela aqui terá a lista completa de usuários cadastrados e quando for do tipo "fretista" o usuário administrador vai associa-lo a um fretista da lista de fretista, configurando assim o que esse usuário irá ver no aplicativo.
+
+-------------------
+
+CONSIDERAÇÕES FINAIS DAS FUNCIONALIDADES DO APLICATIVO:
+
+TODO REGISTRO ENVIADO VAI GERAR UMA INFORMAÇÃO COM:
+Registro enviado por "nome do usuário que enviou o registro" + "data de envio do registro" + "hora de envio do registro"
+
+TODO REGISTRO EDITADO VAI GERAR UMA INFORMAÇÃO COM:
+Registro editado por "nome do usuário que enviou o registro" + "data de edição do registro" + "hora de edição do registro"
+
+SEGUE LISTA DE USUARIOS ADMINISTRADORES:
+obedys.ia@gmail.com
+adm.salvador@frutasdocemel.com.br
+obedysjunio@gmail.com
+obedysgois@gmail.com
+eujunio13@gmail.com
+
+TODO USUARIO NOVO CADASTRADO AUTOMATICAMENTE SERÁ DO TIPO "USUARIO NOVO", E SOMENTE O USUARIO ADMINISTRADOR PODERÁ ALTERAR O SEU TIPO DE USUARIO (PELA TELA DE CONFIGURAÇÕES OU PELA SUPABASE)
+
+QUANDO IMPORTADO UM ARQUIVO COM MAIS DE 1 NOTA, O APLICATIVO NÃO DEVE REGISTRAR/EXTRAIR OS DADOS APENAS DA PRIMEIRA NOTA. O APLICAITVO DEVE VERIFICAR TODAS AS PAGINAS DO ARQUIVO ENVIADO, E IDENTIFICAR AS NOTAS PARA QUE EXTRAIA TODAS AS INFORMAÇÕES DE TODAS AS NOTAS, MESMO QUE SEJA VARIAS NOTAS EM UM UNICO ARQUIVO.
+
+so extrair dados de notas fiscais COM OS CFOP DA LISTA DE REGRAS DE CFOP, OU Seja, que tem como natureza da operação PELO MENOS A PALAVRA "REVENDA"
+
+não extrair dados de notas com numeração duplicada, não extrair dados de notas onde já tem a numeração no APLICATIVO.
+
+INCLUIR BOTÃO "LIMPAR FILTROS" QUE LIMPA TODOS OS FILTROS SELECIONADOS em todas as telas que contem filtros
+
+na tela de registros, INCLUIR TAMBEM O BOTÃO QUE DELETA VARIOS REGISTROS AO MESMO TEMPO, BASTANDO O USUARIO SELECIONAR OS REGISTROS E DEPOIS CLICAR NESSE BOTÃO (EXCLUIR SELEÇÃO) - VAI APARECEER MENSAGEM PERGUNTANDO SE DESEJA SEGUIR COM A EXCLUSÃO DOS REGISTROS SELECIONADOS "SIM" OU "NÃO" OBSERVAÇÃO: AO CLICAR NESSE BOTÃO "EXCLUIR SELEÇÃO", O APLICATIVO IRÁ EXCLUIR UM REGISTRO A CADA 1 SEGUNDO DE INTERVALO, PARA NAO OCORRER SOBRECARGA NO APLICATIVO.
+
+toda nota importada que gera um registro, mesmo as notas estejam agrupadas em um único arquivo, no registro realizado (com os dados da nota), deve ficar salvo apenas a nota desse registro, para quando o usuário clicar no botão que abre o arquivo da nota, ele vai ver apenas a nota do registro, e nao todas as notas do arquivo que foi feito o upload. é como se depois que o registro com os dados da nota for realizado, o sistema separasse essa nota das demais e salvasse ela em um único arquivo, deixando ela disponível para download no seu respectivo registro.
+
+incluir um botão flutuante na tela de "Registros" que ao ser clicado, o usuario poderá gerar um registro (manualmente) preenchendo todos os campos: 
+observação: todos esses campos serão digitados manualmente pelo usuario ao clicar no botão flutuante (nome do botão = "Incluir")
+
+Na tela registros...:
+
+📋 Ordenação por Status:
+•	Pendente aparece primeiro (prioridade 1)
+•	Baixada aparece por último (prioridade 8)
+•	Outros status ficam no meio, ordenados por relevância
+⚡ Otimizações de Performance:
+1.	React.memo - Componente TableRowMemo otimizado para evitar re-renders desnecessários
+2.	useMemo - Cálculos pesados (filtros + ordenação) são memoizados
+3.	useCallback - Funções são memoizadas para evitar recriações
+4.	Paginação - Apenas 50 itens por página são renderizados
+5.	Tempo de delay reduzido - Na exclusão em massa (100ms vs 1000ms)
+🔧 Melhorias Adicionais:
+•	Controles de navegação entre páginas
+•	Contador inteligente mostra progresso da paginação
+•	Seleção otimizada - Funciona apenas com itens da página atual
+•	Ordenação dupla - Por status primeiro, depois por data de emissão
+
+
+LAYOUT E VISUAL DO APLICATIVO:
+
+cores:
+usar cores verde, laranja, e bege como cores para o aplicativo
+
+visual:
+moderno, responsivo, chamativo, intuitivo
+
+imagens:
+logocanhotos.png como logo principal do aplicativo
+splashcanhotos.png para a tela de splash

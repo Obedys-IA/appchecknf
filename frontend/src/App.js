@@ -1,102 +1,93 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import Login from './components/Login';
+import Register from './components/Register';
+import Dashboard from './pages/Dashboard';
+import ProcessarPDFs from './pages/ProcessarPDFs';
+import Registros from './pages/Registros';
+import Relatorios from './pages/Relatorios';
+import Usuarios from './pages/Usuarios';
+import Perfil from './pages/Perfil';
+import Configuracoes from './pages/Configuracoes';
+import Unauthorized from './pages/Unauthorized';
 import './App.css';
-import logo from './logodoapp.png'; // Importando o logo
 
 function App() {
-  const [file, setFile] = useState(null);
-  const [status, setStatus] = useState('');
-  const [processedFiles, setProcessedFiles] = useState([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  // URL da API - funciona tanto local quanto na web
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setStatus('');
-    setProcessedFiles([]);
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
-      setStatus('Selecione um arquivo PDF primeiro.');
-      return;
-    }
-    setIsProcessing(true);
-    setStatus('Enviando e processando... Isso pode levar alguns segundos.');
-    setProcessedFiles([]);
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch(`${API_URL}/processar`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatus(`Processamento concluído! ${data.arquivos.length} notas separadas.`);
-        setProcessedFiles(data.arquivos);
-      } else {
-        setStatus('Erro: ' + (data.error || 'Ocorreu um problema no servidor.'));
-      }
-    } catch (error) {
-      console.error('Erro no upload:', error);
-      setStatus('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleDownloadExcel = () => {
-    window.location.href = `${API_URL}/download-excel`;
-  };
-
-  const handleDownloadZip = () => {
-    window.location.href = `${API_URL}/download-zip`;
-  };
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <h1>GDM - SeparadorPDF</h1>
-        <p className="subtitle">Faça o upload de um arquivo PDF com múltiplas notas fiscais.</p>
-        
-        <div className="upload-section">
-          <input type="file" id="file-upload" accept="application/pdf" onChange={handleFileChange} />
-          <label htmlFor="file-upload" className="custom-file-upload">
-            {file ? file.name : 'Escolher Arquivo'}
-          </label>
-          <button onClick={handleUpload} disabled={!file || isProcessing}>
-            {isProcessing ? 'Processando...' : 'Processar Arquivo'}
-          </button>
-        </div>
-
-        {status && <p className="status">{status}</p>}
-
-        {processedFiles.length > 0 && (
-          <div className="results-section">
-            <h2>Arquivos Gerados:</h2>
-            <ul>
-              {processedFiles.map((filename, index) => (
-                <li key={index}>{filename}</li>
-              ))}
-            </ul>
-            <div className="download-buttons-container">
-              <button onClick={handleDownloadExcel} className="download-button">
-                Exportar para Excel
-              </button>
-              <button onClick={handleDownloadZip} className="download-button">
-                Baixar Todos (ZIP)
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
-    </div>
+    <Router>
+      <AuthProvider>
+        <Routes>
+          {/* Rotas públicas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          
+          {/* Rotas protegidas */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'gerencia']}>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/processar" element={
+            <ProtectedRoute allowedTypes={['administrador', 'colaborador']}>
+              <Layout>
+                <ProcessarPDFs />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/registros" element={
+            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'gerencia']}>
+              <Layout>
+                <Registros />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/relatorios" element={
+            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'gerencia']}>
+              <Layout>
+                <Relatorios />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/usuarios" element={
+            <ProtectedRoute allowedTypes={['administrador']}>
+              <Layout>
+                <Usuarios />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/perfil" element={
+            <ProtectedRoute allowedTypes={['administrador', 'colaborador', 'fretista', 'gerencia']}>
+              <Layout>
+                <Perfil />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/configuracoes" element={
+            <ProtectedRoute allowedTypes={['administrador']}>
+              <Layout>
+                <Configuracoes />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Redirecionamento padrão */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
   );
 }
 
