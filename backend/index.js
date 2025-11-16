@@ -4,11 +4,14 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { PDFDocument } = require('pdf-lib');
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const pdfParse = require('pdf-parse');
 const excel = require('exceljs');
 const archiver = require('archiver');
 const { createClient } = require('@supabase/supabase-js')
+const csv = require('csv-parser')
+const https = require('https')
+const { google } = require('googleapis')
 
 // Configuração do Supabase
 const supabaseUrl = process.env.SUPABASE_URL || 'https://nwkqdbonogfitjhkjjgh.supabase.co'
@@ -17,6 +20,155 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Middlewares
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
+// Utilitário: adicionar linha ao Google Sheets
+async function appendRowToGoogleSheets(rowObject) {
+  const spreadsheetId = process.env.GOOGLE_SHEETS_ID
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
+  const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY
+  const range = process.env.GOOGLE_SHEETS_RANGE || 'Registros!A:Z'
+
+  if (!spreadsheetId || !clientEmail || !privateKeyRaw) {
+    throw new Error('Credenciais do Google Sheets ausentes nas variáveis de ambiente')
+  }
+
+  const privateKey = privateKeyRaw.replace(/\\n/g, '\n')
+
+  const auth = new google.auth.JWT({
+    email: clientEmail,
+    key: privateKey,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+  })
+
+  const sheets = google.sheets({ version: 'v4', auth })
+
+  // Buscar cabeçalho para mapear colunas dinamicamente
+  const sheetName = range.includes('!') ? range.split('!')[0] : 'Registros'
+  const headerRange = `${sheetName}!1:1`
+  const headerResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: headerRange })
+  const headers = headerResp.data.values?.[0] || []
+
+  // Montar valores na ordem do cabeçalho; se vazio, usar todas as chaves do objeto
+  const keys = headers.length > 0 ? headers : Object.keys(rowObject)
+  const rowValues = keys.map((k) => {
+    const v = rowObject[k]
+    if (v === null || v === undefined) return ''
+    if (typeof v === 'object') return JSON.stringify(v)
+    return String(v)
+  })
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range,
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    resource: { values: [rowValues] }
+  })
+}
+
+// Atualiza uma linha existente em uma planilha com base em uma chave única
+async function updateRowInGoogleSheets(rowObject) {
+  const spreadsheetId = process.env.GOOGLE_SHEETS_ID
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
+  const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY
+  const range = process.env.GOOGLE_SHEETS_RANGE || 'Registros!A:Z'
+
+  if (!spreadsheetId || !clientEmail || !privateKeyRaw) {
+    throw new Error('Credenciais do Google Sheets ausentes nas variáveis de ambiente')
+  }
+
+  // Alguns provedores armazenam a chave com "\\n" em vez de quebras reais.
+  const privateKey = privateKeyRaw.includes('\\n')
+    ? privateKeyRaw.replace(/\\n/g, '\n')
+    : privateKeyRaw
+
+  const auth = new google.auth.JWT({
+    email: clientEmail,
+    key: privateKey,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+  })
+
+  const sheets = google.sheets({ version: 'v4', auth })
+
+  const sheetName = range.includes('!') ? range.split('!')[0] : 'Registros'
+  const headerRange = `${sheetName}!1:1`
+  const headerResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: headerRange })
+  const headers = headerResp.data.values?.[0] || []
+
+  if (headers.length === 0) {
+    throw new Error('Cabeçalho da planilha não encontrado para mapeamento de atualização')
+  }
+
+  // Determina a chave de correspondência: prioridade para registro_id, depois numero_nf, depois id
+  let matchKey = null
+  if (headers.includes('registro_id') && rowObject.registro_id) matchKey = 'registro_id'
+  else if (headers.includes('numero_nf') && rowObject.numero_nf) matchKey = 'numero_nf'
+  else if (headers.includes('id') && rowObject.id) matchKey = 'id'
+
+  if (!matchKey) {
+    throw new Error('Não foi possível determinar a chave de correspondência para atualização (registro_id/numero_nf/id ausente)')
+  }
+
+  const matchColIndex = headers.indexOf(matchKey)
+
+  // Helper para converter índice de coluna (0-based) para A1 (A, B, ..., AA, AB, ...)
+  const colToA1 = (n) => {
+    let s = ''
+    n += 1 // 1-based
+    while (n > 0) {
+      const mod = (n - 1) % 26
+      s = String.fromCharCode(65 + mod) + s
+      n = Math.floor((n - 1) / 26)
+    }
+    return s
+  }
+
+  // Buscar todas as linhas de dados com o último cabeçalho real (suporta além de Z)
+  const lastDataColLetter = colToA1(headers.length - 1)
+  const dataRange = `${sheetName}!A2:${lastDataColLetter}`
+  const dataResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: dataRange })
+  const rows = dataResp.data.values || []
+
+  // Encontrar índice da linha cujo valor da coluna de match corresponde
+  let foundRowNumber = null // número absoluto na planilha (inclui cabeçalho)
+  let foundRowIndex = null   // índice no array "rows" (0-based)
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
+    const cellVal = (row[matchColIndex] || '').toString()
+    if (cellVal === String(rowObject[matchKey])) {
+      foundRowNumber = i + 2 // +2 porque dados começam na linha 2
+      foundRowIndex = i
+      break
+    }
+  }
+
+  if (!foundRowNumber) {
+    throw new Error(`Linha não encontrada para ${matchKey}=${rowObject[matchKey]}`)
+  }
+
+  // Mesclar os valores existentes com os enviados para não apagar campos não presentes
+  const existingRow = foundRowIndex != null ? rows[foundRowIndex] || [] : []
+  const rowValues = headers.map((k, idx) => {
+    const incoming = rowObject[k]
+    const chosen = incoming !== undefined && incoming !== null ? incoming : (existingRow[idx] ?? '')
+    if (typeof chosen === 'object') return JSON.stringify(chosen)
+    return String(chosen)
+  })
+
+  const lastColLetter = colToA1(headers.length - 1)
+  const updateRange = `${sheetName}!A${foundRowNumber}:${lastColLetter}${foundRowNumber}`
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: updateRange,
+    valueInputOption: 'USER_ENTERED',
+    resource: { values: [rowValues] }
+  })
+}
 
 // Carregar dados de emitentes e clientes
 let emitentesData = [];
@@ -66,6 +218,30 @@ function buscarNomeFantasiaCliente(cnpjCpf) {
   } catch (error) {
     console.error('Erro ao buscar cliente:', error);
     return '';
+  }
+}
+
+// Preferencial: buscar nome fantasia a partir da tabela 'clientes' no Supabase
+async function buscarNomeFantasiaClienteDB(cnpjCpf) {
+  try {
+    if (!cnpjCpf) return ''
+    const cnpjLimpo = cnpjCpf.replace(/[^\d]/g, '')
+    // Tentar correspondência direta no Supabase com CNPJ/CPF limpo
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('nome_fantasia, cnpj')
+      .eq('cnpj', cnpjLimpo)
+      .limit(1)
+
+    if (!error && data && data.length > 0) {
+      return data[0].nome_fantasia || ''
+    }
+
+    // Fallback: comparar pelo CNPJ/CPF na base JSON local
+    return buscarNomeFantasiaCliente(cnpjCpf)
+  } catch (error) {
+    console.error('Erro ao consultar nome fantasia no Supabase:', error)
+    return buscarNomeFantasiaCliente(cnpjCpf)
   }
 }
 
@@ -363,8 +539,8 @@ function extrairCamposNota(texto) {
     // Converte para formato ISO (YYYY-MM-DD)
     dataEmissao = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
   } else {
-    // Tenta formato alternativo "DATA DA EMISSÃO\n20/10/2025"
-    dataMatch = texto.match(/DATA DA EMISS[ÃA]O[\s\n]*(\d{2})\/(\d{2})\/(\d{4})/i);
+    // Tenta formatos alternativos em caixa alta, com quebra de linha: "DATA DA EMISSÃO" ou "DATA DE EMISSÃO"
+    dataMatch = texto.match(/DATA\s+(?:DA|DE)\s+EMISS[ÃA]O[\s\n]*(\d{2})\/(\d{2})\/(\d{4})/i);
     if (dataMatch) {
       // Converte para formato ISO (YYYY-MM-DD)
       dataEmissao = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
@@ -471,7 +647,11 @@ function extrairCamposNota(texto) {
   // Hora da Saída/Entrada (Hora da Emissão)
   let horaSaida = '';
   const horaSaidaMatches = [
-    texto.match(/HORA DA SA[ÍI]DA\/ENTRADA\s*(\d{2}:\d{2}:\d{2})/i),
+    // Variações em caixa alta com ordem invertida
+    texto.match(/HORA\s+ENTRADA\/SA[ÍI]DA[\s\n]*(\d{2}:\d{2}(?::\d{2})?)/i),
+    texto.match(/HORA\s+DA\s+ENTRADA\/SA[ÍI]DA[\s\n]*(\d{2}:\d{2}(?::\d{2})?)/i),
+    // Variação original
+    texto.match(/HORA\s+DA\s+SA[ÍI]DA\/ENTRADA[\s\n]*(\d{2}:\d{2}(?::\d{2})?)/i),
     texto.match(/Hora (?:da )?Sa[íi]da\/Entrada\s*:?\s*(\d{2}:\d{2}(?::\d{2})?)/i),
     texto.match(/Hora (?:da )?Sa[íi]da\s*:?\s*(\d{2}:\d{2}(?::\d{2})?)/i),
     texto.match(/Hora (?:de )?Sa[íi]da\s*:?\s*(\d{2}:\d{2}(?::\d{2})?)/i),
@@ -657,6 +837,12 @@ function extrairCamposNota(texto) {
     const vencMatch = faturaSection[0].match(/Venc\.?\s*:?\s*(\d{2})[\/-]?(\d{2})[\/-]?(\d{4})/i);
     if (vencMatch) {
       dataVencimento = `${vencMatch[3]}-${vencMatch[2]}-${vencMatch[1]}`;
+    } else {
+      // Fallback: procurar qualquer data dentro do bloco FATURA/DUPLICATA
+      const anyDate = faturaSection[0].match(/(\d{2})[\/-](\d{2})[\/-](\d{4})/);
+      if (anyDate) {
+        dataVencimento = `${anyDate[3]}-${anyDate[2]}-${anyDate[1]}`;
+      }
     }
   }
   
@@ -685,24 +871,71 @@ function extrairCamposNota(texto) {
     nomeFantasia = buscarNomeFantasiaCliente(cnpjCpfDestinatario);
   }
 
-  // Valor Total da Nota
+  // Valor Total da Nota - Melhorado para capturar diferentes formatos
   let valorTotal = '';
-  // Busca por "V. TOTAL DA NOTA" seguido do valor - melhorada para capturar valores completos
-  const valorTotalMatch = texto.match(/V\.\s*TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i);
-  if (valorTotalMatch) {
-    valorTotal = valorTotalMatch[1].trim();
-  } else {
-    // Busca alternativa por "VALOR TOTAL DA NOTA"
-    const valorTotalAltMatch = texto.match(/VALOR\s+TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i);
-    if (valorTotalAltMatch) {
-      valorTotal = valorTotalAltMatch[1].trim();
-    } else {
-      // Busca mais genérica por padrões de valor após "TOTAL"
-      const valorGenericoMatch = texto.match(/(?:TOTAL|V\.\s*TOTAL)[^\d]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i);
-      if (valorGenericoMatch) {
-        valorTotal = valorGenericoMatch[1].trim();
+  
+  // Array de padrões de busca para valor total, ordenados por prioridade
+  const padroesBusca = [
+    // Padrões específicos mais comuns
+    /V\.\s*TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    /VALOR\s+TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    /TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    /V\.\s*TOTAL\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    /VALOR\s+TOTAL\s*[\n\r\s]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    
+    // Padrões mais genéricos
+    /(?:TOTAL|V\.\s*TOTAL)\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    /(?:TOTAL|V\.\s*TOTAL)[^\d]*([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    
+    // Padrões para formatos alternativos (sem pontos nos milhares)
+    /V\.\s*TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]+,\d{2})/i,
+    /VALOR\s+TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]+,\d{2})/i,
+    /TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]+,\d{2})/i,
+    
+    // Padrões para valores com formato americano (ponto como decimal)
+    /V\.\s*TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:,[0-9]{3})*\.\d{2})/i,
+    /VALOR\s+TOTAL\s+DA\s+NOTA\s*[\n\r\s]*([0-9]{1,3}(?:,[0-9]{3})*\.\d{2})/i,
+    
+    // Padrões mais flexíveis para capturar valores em contextos diferentes
+    /(?:TOTAL|VALOR).*?([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/i,
+    /([0-9]{1,3}(?:\.[0-9]{3})*,\d{2}).*?(?:TOTAL|VALOR)/i
+  ];
+  
+  // Tenta cada padrão até encontrar um match
+  for (const padrao of padroesBusca) {
+    const match = texto.match(padrao);
+    if (match && match[1]) {
+      valorTotal = match[1].trim();
+      console.log(`Valor total encontrado com padrão: ${padrao.source} -> ${valorTotal}`);
+      break;
+    }
+  }
+  
+  // Se ainda não encontrou, tenta uma busca mais ampla por valores monetários
+  if (!valorTotal) {
+    // Busca por valores monetários próximos a palavras-chave relacionadas a total
+    const textoLimpo = texto.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+    const segmentos = textoLimpo.split(/(?:TOTAL|VALOR|V\.)/i);
+    
+    for (let i = 1; i < segmentos.length; i++) {
+      const segmento = segmentos[i];
+      const valorMatch = segmento.match(/([0-9]{1,3}(?:\.[0-9]{3})*,\d{2})/);
+      if (valorMatch) {
+        valorTotal = valorMatch[1].trim();
+        console.log(`Valor total encontrado por segmentação: ${valorTotal}`);
+        break;
       }
     }
+  }
+  
+  // Log para debug
+  if (valorTotal) {
+    console.log(`✅ Valor total extraído: ${valorTotal}`);
+  } else {
+    console.log('⚠️ Valor total não encontrado - verificar formato da nota fiscal');
+    // Mostra uma amostra do texto para debug
+    const amostra = texto.substring(0, 500).replace(/\n/g, ' ').replace(/\s+/g, ' ');
+    console.log(`Amostra do texto: ${amostra}...`);
   }
 
   return { 
@@ -764,11 +997,27 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     
     // Usar o buffer do arquivo em memória
     const pdfBytes = req.file.buffer;
+    const mime = (req.file.mimetype || '').toLowerCase()
+    const header = pdfBytes && pdfBytes.slice(0, 5).toString()
+
+    // Validação rápida de PDF
+    if (!pdfBytes || !pdfBytes.length) {
+      return res.status(400).json({ error: 'Arquivo vazio', details: 'O arquivo enviado não contém dados.' })
+    }
+    if (!mime.includes('pdf') || !String(header || '').includes('%PDF')) {
+      return res.status(400).json({ error: 'Arquivo inválido', details: 'O arquivo enviado não parece ser um PDF válido.' })
+    }
   
   // Gerar hash do arquivo para verificação de duplicatas
   const fileHash = generateFileHash(pdfBytes);
   
-  const pdfDoc = await PDFDocument.load(pdfBytes);
+  let pdfDoc
+  try {
+    pdfDoc = await PDFDocument.load(pdfBytes)
+  } catch (e) {
+    console.error('Falha ao carregar PDF:', e)
+    return res.status(400).json({ error: 'Falha ao interpretar PDF', details: e.message })
+  }
   const numPages = pdfDoc.getPageCount();
 
   // Extrair texto de cada página e agrupar por NF
@@ -826,8 +1075,16 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     const diasAtraso = calcularDiasAtraso(campos.dataVencimento);
     const diasVencimento = calcularDiasVencimento(campos.dataVencimento);
 
-    // Buscar fretista e nome fantasia antes de usar
-    const fretista = buscarFretista(campos.placa);
+    // Buscar fretista e nome fantasia antes de usar (Supabase com fallback)
+    let fretista = '';
+    try {
+      fretista = await buscarFretistaSupabase(campos.placa);
+    } catch (e) {
+      console.error('Erro ao consultar fretista no Supabase em /processar:', e);
+    }
+    if (!fretista) {
+      fretista = buscarFretista(campos.placa);
+    }
     let nomeFantasiaCurto = '';
     
     // Primeiro tenta usar o nome fantasia extraído da nota
@@ -842,6 +1099,17 @@ app.post('/processar', upload.single('file'), async (req, res) => {
       console.log('Nome fantasia encontrado:', nomeFantasiaCliente);
       if (nomeFantasiaCliente) {
         nomeFantasiaCurto = nomeFantasiaCliente.split(/\s+/).slice(0,2).join(' ');
+      }
+    }
+
+    // Consultar nome fantasia oficial no Supabase (preferencial)
+    let nomeFantasiaOficial = '';
+    if (campos.cnpjCpfDestinatario) {
+      try {
+        console.log('Consultando nome fantasia oficial no Supabase:', campos.cnpjCpfDestinatario);
+        nomeFantasiaOficial = await buscarNomeFantasiaClienteDB(campos.cnpjCpfDestinatario);
+      } catch (e) {
+        console.error('Erro ao consultar nome fantasia no Supabase:', e.message);
       }
     }
 
@@ -907,7 +1175,7 @@ app.post('/processar', upload.single('file'), async (req, res) => {
         
         // Dados do cliente
         cnpj_cpf_destinatario: campos.cnpjCpfDestinatario || campos.cnpjDestinatario || '',
-        nome_fantasia: nomeFantasiaCurto || '',
+        nome_fantasia: nomeFantasiaOficial || nomeFantasiaCurto || '',
         razao_social: campos.razaoSocial || '',
         
         // Dados comerciais
@@ -945,6 +1213,42 @@ app.post('/processar', upload.single('file'), async (req, res) => {
          // Salvar o ID do registro para atualizar o nome do arquivo depois
          registroIndividual.registro_id = registroSalvo[0]?.id;
          registrosSalvos++;
+
+         // Acrescentar linha ao Google Sheets com os dados principais
+         try {
+           const sheetRow = {
+             registro_id: registroIndividual.registro_id,
+             usuario_id: 'dc580b23-da54-473e-9d4f-7741e0ba4378',
+             numero_nf: registroIndividual.numero_nf,
+             data_emissao: registroIndividual.data_emissao,
+             data_vencimento: registroIndividual.data_vencimento,
+             valor_total: registroIndividual.valor_total,
+             cnpj_cpf_destinatario: registroIndividual.cnpj_cpf_destinatario,
+             razao_social: registroIndividual.razao_social,
+             nome_fantasia: registroIndividual.nome_fantasia,
+             vendedor: registroIndividual.vendedor,
+             rede: registroIndividual.rede,
+             placa: registroIndividual.placa,
+             fretista: registroIndividual.fretista,
+             hora_saida: registroIndividual.hora_saida,
+             data_entrega: registroIndividual.data_entrega,
+             cfop: registroIndividual.cfop,
+             natureza_operacao: registroIndividual.natureza_operacao,
+             uf: registroIndividual.uf,
+             cnpj_emitente: registroIndividual.cnpj_emitente,
+             razao_social_emitente: registroIndividual.razao_social_emitente,
+             nome_fantasia_emitente: registroIndividual.nome_fantasia_emitente,
+             status: registroIndividual.status,
+             situacao: registroIndividual.situacao,
+             observacoes: 'Upload via /processar',
+             created_at: new Date().toISOString(),
+             url_upload: req.file?.originalname || ''
+           }
+           await appendRowToGoogleSheets(sheetRow)
+           console.log('Linha adicionada ao Google Sheets para NF', registroIndividual.numero_nf)
+         } catch (sheetsError) {
+           console.error('Falha ao enviar linha ao Google Sheets (processar):', sheetsError)
+         }
        }
      } catch (error) {
        console.error('Erro ao processar registro individual:', error);
@@ -1014,8 +1318,8 @@ app.post('/processar', upload.single('file'), async (req, res) => {
       nomeArquivo += ` - ${campos.valorTotal}`;
     }
     
-    // 7. Adicionar placa e fretista
-    nomeArquivo += ` - ${campos.placa} - ${fretista}`;
+  // 7. Adicionar placa e fretista
+  nomeArquivo += ` - ${campos.placa} - ${fretista}`;
     
     // 8. Adicionar data de vencimento se disponível
     if (campos.dataVencimento) {
@@ -1084,10 +1388,23 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     // Gerar bytes do PDF individual (apenas para dados CSV, não salvar arquivo)
     const pdfIndividualBytes = await pdfIndividual.save();
 
+    // Salvar o PDF individual em disco para permitir download em ZIP
+    try {
+      const uploadDir = path.join(__dirname, 'uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const outputPath = path.join(uploadDir, nomeArquivo);
+      fs.writeFileSync(outputPath, pdfIndividualBytes);
+    } catch (saveErr) {
+      console.error('Erro ao salvar PDF individual em uploads:', saveErr);
+      // Continua processamento; apenas impacta o ZIP
+    }
+
     // Adicionar dados para o arquivo de exportação
     dadosCSV.push({
       'Nº NF': campos.numeroNF,
-      'Nome Fantasia': nomeFantasiaCurto || 'N/A', // Usa o nome fantasia consultado ou extraído
+      'Nome Fantasia': nomeFantasiaOficial || nomeFantasiaCurto || 'N/A',
       'Data de Emissão': campos.dataEmissao,
       'Placa': campos.placa,
       'Fretista': fretista,
@@ -1099,7 +1416,11 @@ app.post('/processar', upload.single('file'), async (req, res) => {
       'Nome Fantasia Emitente': campos.nomeFantasiaEmitente,
       'CNPJ/CPF Destinatário': campos.cnpjDestinatario || campos.cnpjCpfDestinatario,
       'Nome Fantasia Destinatário': campos.nomeFantasiaDestinatario,
-      'Nome Fantasia Consultado': nomeFantasiaCurto ? (campos.nomeFantasia && campos.nomeFantasia.trim() ? 'Extraído da Nota' : 'Consultado no clientes.json') : 'Não encontrado',
+      'Nome Fantasia Consultado': (nomeFantasiaOficial && nomeFantasiaOficial.trim())
+        ? 'Consultado no Supabase'
+        : (nomeFantasiaCurto
+           ? (campos.nomeFantasia && campos.nomeFantasia.trim() ? 'Extraído da Nota' : 'Consultado no clientes.json')
+           : 'Não encontrado'),
       'Hora Emissão': campos.horaSaida,
       'Data Vencimento': campos.dataVencimento,
       'Hora Saída': campos.horaSaida,
@@ -1270,6 +1591,372 @@ app.post('/processar', upload.single('file'), async (req, res) => {
 }
 });
 
+// Novo endpoint: processar múltiplos PDFs em lote
+app.post('/processar-multiplos', upload.array('files', 20), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado.' })
+    }
+
+    let totalRegistrosSalvos = 0
+    let totalDuplicatas = 0
+    let totalValidacoes = 0
+    const resultados = []
+    const dadosCSV = []
+
+    for (const file of req.files) {
+      const originalname = file.originalname || 'arquivo.pdf'
+      const pdfBytes = file.buffer
+      const mime = (file.mimetype || '').toLowerCase()
+      const header = pdfBytes && pdfBytes.slice(0,5).toString()
+
+      // Validações básicas do PDF
+      if (!pdfBytes || !pdfBytes.length) {
+        resultados.push({ arquivo: originalname, erro: 'Arquivo vazio', registrosSalvos: 0, duplicatas: [], validacoes: [] })
+        continue
+      }
+      if (!mime.includes('pdf') || !String(header || '').includes('%PDF')) {
+        resultados.push({ arquivo: originalname, erro: 'Arquivo inválido (não é PDF)', registrosSalvos: 0, duplicatas: [], validacoes: [] })
+        continue
+      }
+
+      const fileHash = generateFileHash(pdfBytes)
+      let pdfDoc
+      try {
+        pdfDoc = await PDFDocument.load(pdfBytes)
+      } catch (e) {
+        resultados.push({ arquivo: originalname, erro: `Falha ao interpretar PDF: ${e.message}` , registrosSalvos: 0, duplicatas: [], validacoes: [] })
+        continue
+      }
+
+      const numPages = pdfDoc.getPageCount()
+      const paginasPorNF = {}
+      const textosPorNF = {}
+      const validacoes = []
+      const duplicatas = []
+      let registrosSalvos = 0
+
+      // Extrair texto por página e agrupar por NF
+      for (let i = 0; i < numPages; i++) {
+        const tempPdf = await PDFDocument.create()
+        const [pagina] = await tempPdf.copyPages(pdfDoc, [i])
+        tempPdf.addPage(pagina)
+        const tempPdfBytes = await tempPdf.save()
+        const tempData = await pdfParse(tempPdfBytes)
+        const texto = tempData.text
+        const numeroNF = extrairNumeroNF(texto) || `SEMNF_${i+1}`
+        if (!paginasPorNF[numeroNF]) {
+          paginasPorNF[numeroNF] = []
+          textosPorNF[numeroNF] = []
+        }
+        paginasPorNF[numeroNF].push(i)
+        textosPorNF[numeroNF].push(texto)
+      }
+
+      // Processar por NF (salvar registros individuais no Supabase)
+      for (const numeroNF in paginasPorNF) {
+        try {
+          const campos = extrairCamposNota(textosPorNF[numeroNF][0])
+
+          const dataEntregaCalculada = calcularDataEntrega(campos.dataEmissao, campos.horaSaida)
+          // Dias de atraso/vencimento calculados se necessário
+          calcularDiasAtraso(campos.dataVencimento)
+          calcularDiasVencimento(campos.dataVencimento)
+
+          // Buscar fretista e nome fantasia
+          let fretista = ''
+          try {
+            fretista = await buscarFretistaSupabase(campos.placa)
+          } catch (e) {
+            console.error('Erro ao consultar fretista no Supabase em /processar-multiplos:', e)
+          }
+          if (!fretista) {
+            fretista = buscarFretista(campos.placa)
+          }
+
+          let nomeFantasiaCurto = ''
+          if (campos.nomeFantasia && campos.nomeFantasia.trim()) {
+            nomeFantasiaCurto = campos.nomeFantasia.split(/\s+/).slice(0,2).join(' ')
+          }
+          if (!nomeFantasiaCurto && campos.cnpjCpfDestinatario) {
+            const nomeFantasiaCliente = buscarNomeFantasiaCliente(campos.cnpjCpfDestinatario)
+            if (nomeFantasiaCliente) {
+              nomeFantasiaCurto = nomeFantasiaCliente.split(/\s+/).slice(0,2).join(' ')
+            }
+          }
+
+          let nomeFantasiaOficial = ''
+          if (campos.cnpjCpfDestinatario) {
+            try {
+              nomeFantasiaOficial = await buscarNomeFantasiaClienteDB(campos.cnpjCpfDestinatario)
+            } catch (e) {
+              console.error('Erro ao consultar nome fantasia no Supabase:', e.message)
+            }
+          }
+
+          // Verificar duplicatas ANTES de salvar no Supabase
+          const verificacaoDuplicata = await verificarDuplicata(
+            campos.numeroNF,
+            campos.cnpjEmitente,
+            campos.dataEmissao,
+            fileHash
+          )
+
+          if (verificacaoDuplicata.isDuplicata) {
+            duplicatas.push({
+              numeroNF: campos.numeroNF,
+              tipo: verificacaoDuplicata.tipo,
+              mensagem: verificacaoDuplicata.mensagem
+            })
+            console.log(`⚠️ Duplicata encontrada - NF ${campos.numeroNF}: ${verificacaoDuplicata.mensagem}`)
+            continue
+          }
+
+          // Registrar processamento
+          registrarProcessamento(
+            campos.numeroNF,
+            campos.cnpjEmitente,
+            campos.dataEmissao,
+            fileHash
+          )
+
+          // Montar registro individual
+          try {
+            let situacao = 'Dentro do Prazo'
+            if (campos.dataVencimento) {
+              try {
+                const [dia, mes, ano] = campos.dataVencimento.split('/')
+                const dataVenc = new Date(ano, mes - 1, dia)
+                const hoje = new Date()
+                const diffTime = dataVenc - hoje
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                if (diffDays <= 10 && diffDays >= 0) situacao = 'Vencimento Próximo'
+              } catch (error) {
+                console.error('Erro ao calcular situação:', error)
+              }
+            }
+
+            const registroIndividual = {
+              numero_nf: campos.numeroNF,
+              cnpj_emitente: campos.cnpjEmitente || '',
+              nome_fantasia_emitente: campos.nomeFantasiaEmitente || '',
+              razao_social_emitente: buscarRazaoSocialEmitente(campos.cnpjEmitente || ''),
+              data_emissao: campos.dataEmissao,
+              hora_saida: campos.horaSaida || null,
+              data_entrega: dataEntregaCalculada,
+              cnpj_cpf_destinatario: campos.cnpjCpfDestinatario || campos.cnpjDestinatario || '',
+              nome_fantasia: nomeFantasiaOficial || nomeFantasiaCurto || '',
+              razao_social: campos.razaoSocial || '',
+              rede: campos.rede || '',
+              uf: campos.uf || '',
+              vendedor: campos.vendedor || '',
+              valor_total: campos.valorTotal ? parseFloat(campos.valorTotal.replace(/\./g, '').replace(',', '.')) || null : null,
+              placa: campos.placa,
+              fretista: fretista,
+              data_vencimento: campos.dataVencimento || null,
+              cfop: campos.cfop || '',
+              natureza_operacao: campos.naturezaOperacao || '',
+              situacao: situacao,
+              status: 'PENDENTE'
+            }
+
+            const { data: registroSalvo, error: erroRegistro } = await supabase
+              .from('registros')
+              .insert([registroIndividual])
+              .select()
+
+            if (erroRegistro) {
+              console.error('ERRO ao salvar registro individual no Supabase:', erroRegistro)
+            } else {
+              registrosSalvos++
+              // Acrescentar linha ao Google Sheets
+              try {
+                const sheetRow = {
+                  registro_id: registroSalvo[0]?.id,
+                  usuario_id: 'dc580b23-da54-473e-9d4f-7741e0ba4378',
+                  numero_nf: registroIndividual.numero_nf,
+                  data_emissao: registroIndividual.data_emissao,
+                  data_vencimento: registroIndividual.data_vencimento,
+                  valor_total: registroIndividual.valor_total,
+                  cnpj_cpf_destinatario: registroIndividual.cnpj_cpf_destinatario,
+                  razao_social: registroIndividual.razao_social,
+                  nome_fantasia: registroIndividual.nome_fantasia,
+                  vendedor: registroIndividual.vendedor,
+                  rede: registroIndividual.rede,
+                  placa: registroIndividual.placa,
+                  fretista: registroIndividual.fretista,
+                  hora_saida: registroIndividual.hora_saida,
+                  data_entrega: registroIndividual.data_entrega,
+                  cfop: registroIndividual.cfop,
+                  natureza_operacao: registroIndividual.natureza_operacao,
+                  uf: registroIndividual.uf,
+                  cnpj_emitente: registroIndividual.cnpj_emitente,
+                  razao_social_emitente: registroIndividual.razao_social_emitente,
+                  nome_fantasia_emitente: registroIndividual.nome_fantasia_emitente,
+                  status: registroIndividual.status,
+                  situacao: registroIndividual.situacao,
+                  observacoes: 'Upload via /processar-multiplos',
+                  created_at: new Date().toISOString(),
+                  url_upload: originalname
+                }
+                await appendRowToGoogleSheets(sheetRow)
+              } catch (sheetsError) {
+                console.error('Falha ao enviar linha ao Google Sheets (processar-multiplos):', sheetsError)
+              }
+            }
+          } catch (error) {
+            console.error('Erro ao processar registro individual:', error)
+          }
+
+          // Validações (mesmo padrão do /processar)
+          if (!campos.naturezaOperacao || (!campos.naturezaOperacao.toUpperCase().includes('REVENDA') && !campos.naturezaOperacao.toUpperCase().includes('VENDA'))) {
+            validacoes.push({
+              numeroNF: campos.numeroNF,
+              tipo: 'NATUREZA_REJEITADA',
+              erro: `Natureza da operação "${campos.naturezaOperacao || 'não encontrada'}" não contém REVENDA ou VENDA. Favor verificar a NF ${campos.numeroNF}.`,
+              valor: campos.naturezaOperacao || 'não encontrada'
+            })
+            continue
+          }
+          if (campos.cfop) {
+            const validacaoCFOP = validarCFOP(campos.cfop)
+            if (!validacaoCFOP.valido) {
+              validacoes.push({
+                numeroNF: campos.numeroNF,
+                tipo: 'CFOP_REJEITADO',
+                erro: `CFOP ${campos.cfop} não refere-se a uma nota fiscal de venda. ${validacaoCFOP.erro}. Favor verificar a NF ${campos.numeroNF}.`,
+                valor: campos.cfop
+              })
+              continue
+            }
+          }
+
+          // Construir nome do arquivo, replicando lógica do endpoint único
+          let nomeArquivo = `NF`
+          nomeArquivo += ` - ${campos.numeroNF}`
+          if (campos.nomeFantasiaEmitente) {
+            nomeArquivo += ` - ${campos.nomeFantasiaEmitente}`
+          } else {
+            nomeArquivo += ` - EXPORTACAO`
+          }
+          if (campos.dataEmissao) {
+            nomeArquivo += ` - Emiss ${campos.dataEmissao}`
+          }
+          if (nomeFantasiaCurto) {
+            nomeArquivo += ` - ${nomeFantasiaCurto}`
+          }
+          nomeArquivo += ` - ${campos.razaoSocial}`
+          if (campos.valorTotal) {
+            nomeArquivo += ` - ${campos.valorTotal}`
+          }
+          nomeArquivo += ` - ${campos.placa} - ${fretista}`
+          if (campos.dataVencimento) {
+            nomeArquivo += ` - Venc ${campos.dataVencimento}`
+          }
+          nomeArquivo = nomeArquivo.replace(/[\\/:*?"<>|]/g, '')
+          nomeArquivo = nomeArquivo.replace(/\s+/g, ' ').trim()
+          nomeArquivo += '.pdf'
+
+          // Criar e salvar PDF individual para esta NF
+          const pdfIndividual = await PDFDocument.create()
+          const paginasNota = paginasPorNF[numeroNF]
+          if (paginasNota && paginasNota.length > 0) {
+            for (const numeroPagina of paginasNota) {
+              try {
+                const [paginaCopiada] = await pdfIndividual.copyPages(pdfDoc, [numeroPagina])
+                if (paginaCopiada) pdfIndividual.addPage(paginaCopiada)
+              } catch (pageErr) {
+                console.error(`Erro ao copiar página ${numeroPagina}:`, pageErr.message)
+              }
+            }
+          }
+          if (pdfIndividual.getPageCount() > 0) {
+            try {
+              const pdfBytesInd = await pdfIndividual.save()
+              const uploadDir = path.join(__dirname, 'uploads')
+              if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
+              fs.writeFileSync(path.join(uploadDir, nomeArquivo), pdfBytesInd)
+            } catch (saveErr) {
+              console.error('Erro ao salvar PDF individual (processar-multiplos):', saveErr)
+            }
+          } else {
+            console.warn(`PDF individual para NF ${numeroNF} não tem páginas válidas, pulando...`)
+          }
+
+          // Adicionar linha para exportação (Excel/ZIP)
+          dadosCSV.push({
+            'Nº NF': campos.numeroNF,
+            'Nome Fantasia': nomeFantasiaOficial || nomeFantasiaCurto || 'N/A',
+            'Data de Emissão': campos.dataEmissao,
+            'Placa': campos.placa,
+            'Fretista': fretista,
+            'Razão Social': campos.razaoSocial,
+            'Valor Total': campos.valorTotal || 'N/A',
+            'Arquivo Gerado': nomeArquivo,
+            'CNPJ Emitente': campos.cnpjEmitente,
+            'Nome Fantasia Emitente': campos.nomeFantasiaEmitente,
+            'CNPJ/CPF Destinatário': campos.cnpjDestinatario || campos.cnpjCpfDestinatario,
+            'Nome Fantasia Destinatário': campos.nomeFantasiaDestinatario,
+            'Nome Fantasia Consultado': (nomeFantasiaOficial && nomeFantasiaOficial.trim())
+              ? 'Consultado no Supabase'
+              : (nomeFantasiaCurto
+                 ? (campos.nomeFantasia && campos.nomeFantasia.trim() ? 'Extraído da Nota' : 'Consultado no clientes.json')
+                 : 'Não encontrado'),
+            'Hora Emissão': campos.horaSaida,
+            'Data Vencimento': campos.dataVencimento,
+            'Hora Saída': campos.horaSaida,
+            'Data Entrega': campos.dataEntrega,
+            'Rede': campos.rede,
+            'UF': campos.uf,
+            'Vendedor': campos.vendedor,
+            'CFOP': campos.cfop,
+            'Natureza da Operação': campos.naturezaOperacao
+          })
+        } catch (error) {
+          console.error(`Erro ao processar NF ${numeroNF}:`, error)
+          validacoes.push({
+            numeroNF: numeroNF,
+            tipo: 'ERRO_PROCESSAMENTO',
+            erro: `Erro ao processar NF: ${error.message}`,
+            aviso: 'Esta NF foi pulada devido a erro no processamento'
+          })
+        }
+      }
+
+      resultados.push({
+        arquivo: originalname,
+        registrosSalvos,
+        duplicatas,
+        validacoes
+      })
+      totalRegistrosSalvos += registrosSalvos
+      totalDuplicatas += duplicatas.length
+      totalValidacoes += validacoes.length
+    }
+
+    // Persistir últimos dados processados para permitir downloads
+    try {
+      const uploadDir = path.join(__dirname, 'uploads')
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
+      fs.writeFileSync(path.join(uploadDir, 'last_processed_data.json'), JSON.stringify(dadosCSV, null, 2))
+    } catch (persistErr) {
+      console.error('Erro ao salvar last_processed_data.json (processar-multiplos):', persistErr)
+    }
+
+    return res.json({
+      message: 'Processamento concluído!',
+      totalArquivos: req.files.length,
+      totalRegistrosSalvos,
+      totalDuplicatas,
+      totalValidacoes,
+      resultados
+    })
+  } catch (error) {
+    console.error('Erro no processamento em lote:', error)
+    return res.status(500).json({ error: 'Erro interno do servidor durante o processamento em lote', details: error.message })
+  }
+})
+
 // Endpoint para buscar fretista pela placa
 app.get('/fretista/:placa', (req, res) => {
   const placa = req.params.placa.toUpperCase();
@@ -1328,6 +2015,38 @@ function calcularDiasVencimento(dataVencimento) {
   } catch (error) {
     console.error('Erro ao calcular dias até vencimento:', error);
     return 0;
+  }
+}
+
+// Função para calcular dias desde a emissão (atraso por emissão)
+function calcularDiasAtrasoPorEmissao(dataEmissao) {
+  if (!dataEmissao) return 0
+  try {
+    let emissao
+    if (dataEmissao.includes('-')) {
+      // Formato ISO (YYYY-MM-DD)
+      emissao = new Date(dataEmissao)
+    } else if (dataEmissao.includes('/')) {
+      // Formato BR (DD/MM/YYYY)
+      const [dia, mes, ano] = dataEmissao.split('/')
+      emissao = new Date(ano, mes - 1, dia)
+    } else if (dataEmissao.includes('.')) {
+      // Formato antigo (DD.MM.YYYY)
+      const [dia, mes, ano] = dataEmissao.split('.')
+      emissao = new Date(ano, mes - 1, dia)
+    } else {
+      emissao = new Date(dataEmissao)
+    }
+
+    const hoje = new Date()
+    emissao.setHours(0,0,0,0)
+    hoje.setHours(0,0,0,0)
+    const diffTime = hoje - emissao
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays > 0 ? diffDays : 0
+  } catch (error) {
+    console.error('Erro ao calcular dias por emissão:', error)
+    return 0
   }
 }
 
@@ -1406,7 +2125,8 @@ app.post('/registrar-nota', async (req, res) => {
       natureza_operacao,
       situacao,
       status,
-      observacao
+      observacao,
+      pefin
     } = req.body;
 
     // Validações obrigatórias
@@ -1436,36 +2156,36 @@ app.post('/registrar-nota', async (req, res) => {
       return res.status(500).json({ error: 'Erro interno do servidor' });
     }
 
-    // Buscar fretista pela placa
-    const fretista = buscarFretista(placa);
+    // Buscar fretista pela placa (prioriza Supabase, fallback para arquivo local)
+    let fretista = '';
+    try {
+      fretista = await buscarFretistaSupabase(placa);
+    } catch (e) {
+      console.error('Falha ao consultar fretista no Supabase, tentando fallback local:', e);
+    }
+    if (!fretista) {
+      fretista = buscarFretista(placa);
+    }
 
-    // Buscar nome fantasia se não fornecido
-    let nomeFantasiaFinal = nome_fantasia;
-    if (!nomeFantasiaFinal && cnpj_cliente) {
-      nomeFantasiaFinal = buscarNomeFantasiaCliente(cnpj_cliente);
+    // Buscar nome fantasia padronizado na tabela 'clientes' do Supabase
+    let nomeFantasiaFinal = '';
+    if (cnpj_cliente) {
+      nomeFantasiaFinal = await buscarNomeFantasiaClienteDB(cnpj_cliente);
+    }
+    // Se ainda não encontrar, usar o que veio no payload
+    if (!nomeFantasiaFinal) {
+      nomeFantasiaFinal = nome_fantasia || '';
     }
 
     // Calcular campos automáticos
     const dataEntregaCalculada = calcularDataEntrega(data_emissao, hora_saida);
-    const diasAtraso = calcularDiasAtraso(data_vencimento);
+    const diasAtrasoEmissao = calcularDiasAtrasoPorEmissao(data_emissao);
     const diasVencimento = calcularDiasVencimento(data_vencimento);
 
-    // Calcular situação baseada na data de vencimento
+    // Calcular situação baseada na data de emissão conforme regra
     let situacaoCalculada = 'Dentro do Prazo';
-    if (data_vencimento) {
-      try {
-        const [dia, mes, ano] = data_vencimento.split('/');
-        const dataVencimento = new Date(ano, mes - 1, dia);
-        const hoje = new Date();
-        const diffTime = dataVencimento - hoje;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays <= 10 && diffDays >= 0) {
-          situacaoCalculada = 'Vencimento Próximo';
-        }
-      } catch (error) {
-        console.error('Erro ao calcular situação:', error);
-      }
+    if (diasAtrasoEmissao >= 7) {
+      situacaoCalculada = `${diasAtrasoEmissao} Dias de Atraso`;
     }
 
     // Preparar dados para inserção
@@ -1508,9 +2228,12 @@ app.post('/registrar-nota', async (req, res) => {
       // Status e controle
       situacao: situacaoCalculada,
       status: status || 'Emitida',
-      dias_atraso: diasAtraso,
+      dias_atraso: diasAtrasoEmissao,
       dias_vencimento: diasVencimento,
       observacao: observacao || ''
+      ,
+      // Campo financeiro/pefin
+      pefin: pefin || null
     };
 
     // Inserir no Supabase
@@ -1527,13 +2250,48 @@ app.post('/registrar-nota', async (req, res) => {
       });
     }
 
+    // Enviar linha ao Google Sheets (não bloquear resposta em caso de falha)
+    try {
+      const sheetRow = {
+        registro_id: data?.[0]?.id,
+        usuario_id: 'dc580b23-da54-473e-9d4f-7741e0ba4378',
+        numero_nf: registro.numero_nf,
+        data_emissao: registro.data_emissao,
+        data_vencimento: registro.data_vencimento,
+        valor_total: registro.valor_total,
+        cnpj_cpf_destinatario: registro.cnpj_cpf_destinatario,
+        razao_social: registro.razao_social,
+        nome_fantasia: registro.nome_fantasia,
+        vendedor: registro.vendedor,
+        rede: registro.rede,
+        placa: registro.placa,
+        fretista: registro.fretista,
+        hora_saida: registro.hora_saida,
+        data_entrega: registro.data_entrega,
+        cfop: registro.cfop,
+        natureza_operacao: registro.natureza_operacao,
+        uf: registro.uf,
+        cnpj_emitente: registro.cnpj_emitente,
+        razao_social_emitente: registro.razao_social_emitente,
+        nome_fantasia_emitente: registro.nome_fantasia_emitente,
+        status: registro.status,
+        situacao: registro.situacao,
+        observacoes: registro.observacao || '',
+        created_at: new Date().toISOString()
+      }
+      await appendRowToGoogleSheets(sheetRow)
+      console.log('Linha adicionada ao Google Sheets para NF', registro.numero_nf)
+    } catch (sheetsError) {
+      console.error('Falha ao enviar linha ao Google Sheets:', sheetsError)
+    }
+
     res.json({
       success: true,
       message: 'Registro salvo com sucesso',
       data: data[0],
       calculados: {
         data_entrega: dataEntregaCalculada,
-        dias_atraso: diasAtraso,
+        dias_atraso: diasAtrasoEmissao,
         dias_vencimento: diasVencimento,
         fretista: fretista,
         nome_fantasia_consultado: nomeFantasiaFinal !== nome_fantasia
@@ -1647,10 +2405,64 @@ app.get('/download-zip', (req, res) => {
 // Endpoint para dashboard
 app.get('/api/dashboard', async (req, res) => {
   try {
+    // Extrair filtros da query string
+    const {
+      dateFrom,
+      dateTo,
+      period,
+      fretista,
+      placa,
+      cliente,
+      rede,
+      vendedor,
+      uf,
+      status,
+      situacao,
+      searchText
+    } = req.query
+
+    // Construir query base
+    let query = supabase.from('registros').select('*')
+    
+    // Aplicar filtros
+    if (dateFrom) {
+      query = query.gte('data_emissao', dateFrom)
+    }
+    if (dateTo) {
+      query = query.lte('data_emissao', dateTo)
+    }
+    if (fretista) {
+      query = query.eq('fretista', fretista)
+    }
+    if (placa) {
+      query = query.eq('placa', placa)
+    }
+    if (cliente) {
+      query = query.eq('nome_fantasia', cliente)
+    }
+    if (rede) {
+      query = query.eq('rede', rede)
+    }
+    if (vendedor) {
+      query = query.eq('vendedor', vendedor)
+    }
+    if (uf) {
+      query = query.eq('uf', uf)
+    }
+    if (status) {
+      query = query.eq('status', status.toUpperCase())
+    }
+    if (situacao) {
+      query = query.eq('situacao', situacao)
+    }
+    
+    // Filtro de texto livre (busca em múltiplos campos)
+    if (searchText) {
+      query = query.or(`numero_nf.ilike.%${searchText}%,nome_fantasia.ilike.%${searchText}%,razao_social.ilike.%${searchText}%,fretista.ilike.%${searchText}%,placa.ilike.%${searchText}%,vendedor.ilike.%${searchText}%`)
+    }
+    
     // Buscar dados reais do Supabase
-    const { data: registros, error: registrosError } = await supabase
-      .from('registros')
-      .select('*')
+    const { data: registros, error: registrosError } = await query
     
     if (registrosError) {
       console.error('Erro ao buscar registros:', registrosError)
@@ -1659,23 +2471,23 @@ app.get('/api/dashboard', async (req, res) => {
 
     // Calcular estatísticas baseadas nos requisitos do promptnew.txt
     const totalNotas = registros.length
-    const notasEntregues = registros.filter(r => r.status === 'Entregue').length
-    const notasPendentes = registros.filter(r => r.status === 'Pendente').length
-    const notasCanceladas = registros.filter(r => r.status === 'Cancelada').length
-    const notasDevolvidas = registros.filter(r => r.status === 'Devolvida').length
+    const notasEntregues = registros.filter(r => r.status === 'ENTREGUE').length
+    const notasPendentes = registros.filter(r => r.status === 'PENDENTE').length
+    const notasCanceladas = registros.filter(r => r.status === 'CANCELADA').length
+    const notasDevolvidas = registros.filter(r => r.status === 'DEVOLVIDA').length
     
-    // Calcular eficiência (% de canhotos recebidos)
-    const eficiencia = totalNotas > 0 ? Math.round((notasEntregues / totalNotas) * 100) : 0
+    // Calcular eficiência conforme solicitado: PENDENTE / total de notas emitidas
+    const eficiencia = totalNotas > 0 ? Math.round((notasPendentes / totalNotas) * 100) : 0
     
     // Valor pendente (soma dos valores das notas pendentes)
     const valorPendente = registros
-      .filter(r => r.status === 'Pendente')
+      .filter(r => r.status === 'PENDENTE')
       .reduce((sum, registro) => sum + (parseFloat(registro.valor_total) || 0), 0)
     
     // Notas atrasadas (+7 dias)
     const hoje = new Date()
     const notasAtrasadas = registros.filter(registro => {
-      if (registro.status !== 'Pendente' || !registro.data_emissao) return false
+      if (registro.status !== 'PENDENTE' || !registro.data_emissao) return false
       const dataEmissao = new Date(registro.data_emissao)
       const diasAtraso = Math.floor((hoje - dataEmissao) / (1000 * 60 * 60 * 24))
       return diasAtraso > 7
@@ -1697,18 +2509,19 @@ app.get('/api/dashboard', async (req, res) => {
       .slice(0, 10)
       .map(registro => ({
         id: registro.id,
-        nome: `NF ${registro.numero_nota}`,
+        nome: `NF ${registro.numero_nf}`,
         data: registro.data_emissao,
-        status: registro.status || 'Pendente'
+        status: registro.status || 'PENDENTE'
       }))
     
     // Calculate additional dashboard data
     const vencimentosProximos = await supabase
       .from('registros')
-      .select('cliente, numero_nota, valor, vencimento, status')
-      .not('vencimento', 'is', null)
-      .order('vencimento', { ascending: true })
-      .limit(20)
+      .select('nome_fantasia, numero_nf, valor_total, fretista, placa, data_emissao, hora_saida, data_entrega, data_vencimento, status')
+      .eq('status', 'PENDENTE')
+      .not('data_vencimento', 'is', null)
+      .order('data_vencimento', { ascending: true })
+      .limit(30)
 
     const resumoMensal = {
       notasProcessadas: totalNotas,
@@ -1734,20 +2547,77 @@ app.get('/api/dashboard', async (req, res) => {
     }
 
     // Process vencimentos próximos data
-    const vencimentosProcessados = vencimentosProximos.data?.map(item => {
-      const vencimento = new Date(item.vencimento)
-      const hoje = new Date()
-      const diasRestantes = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24))
-      
-      return {
-        cliente: item.cliente,
-        numeroNota: item.numero_nota,
-        valor: parseFloat(item.valor) || 0,
-        vencimento: item.vencimento,
-        diasRestantes: diasRestantes,
-        status: item.status
-      }
-    }) || []
+    const vencimentosProcessados = vencimentosProximos.data ? await Promise.all(
+      vencimentosProximos.data.map(async (item) => {
+        const vencimento = new Date(item.data_vencimento)
+        const hojeLocal = new Date()
+        const diasRestantes = Math.ceil((vencimento - hojeLocal) / (1000 * 60 * 60 * 24))
+
+        let fretistaFinal = item.fretista || ''
+        if (!fretistaFinal && item.placa) {
+          try {
+            fretistaFinal = await buscarFretistaSupabase(item.placa)
+          } catch (e) {
+            fretistaFinal = ''
+          }
+          if (!fretistaFinal) {
+            fretistaFinal = buscarFretista(item.placa) || ''
+          }
+        }
+
+        const dataEntregaFinal = item.data_entrega || calcularDataEntrega(item.data_emissao, item.hora_saida)
+
+        return {
+          cliente: item.nome_fantasia,
+          numeroNota: item.numero_nf,
+          valor: parseFloat(item.valor_total) || 0,
+          fretista: fretistaFinal,
+          dataEntrega: dataEntregaFinal || '',
+          vencimento: item.data_vencimento,
+          diasRestantes: diasRestantes,
+          status: item.status
+        }
+      })
+    ) : []
+
+    // Top 30 Maiores Atrasos (por emissão)
+    const { data: registrosParaAtrasos, error: errosAtrasos } = await supabase
+      .from('registros')
+      .select('nome_fantasia, numero_nf, valor_total, fretista, placa, data_entrega, data_emissao, hora_saida, status')
+
+    if (errosAtrasos) {
+      console.error('Erro ao buscar registros para atrasos:', errosAtrasos)
+    }
+
+    const atrasosTop = (registrosParaAtrasos || [])
+      .map((item) => {
+        const diasAtraso = calcularDiasAtrasoPorEmissao(item.data_emissao)
+        const situacaoItem = diasAtraso >= 7 ? `${diasAtraso} Dias de Atraso` : 'Dentro do Prazo'
+
+        let fretistaFinal = item.fretista || ''
+        if (!fretistaFinal && item.placa) {
+          try {
+            fretistaFinal = buscarFretista(item.placa) || ''
+          } catch { /* noop */ }
+        }
+
+        const dataEntregaFinal = item.data_entrega || calcularDataEntrega(item.data_emissao, item.hora_saida)
+
+        return {
+          cliente: item.nome_fantasia,
+          numeroNota: item.numero_nf,
+          valor: parseFloat(item.valor_total) || 0,
+          fretista: fretistaFinal,
+          dataEntrega: dataEntregaFinal || '',
+          emissao: item.data_emissao,
+          diasAtraso,
+          situacao: situacaoItem,
+          status: item.status || 'PENDENTE'
+        }
+      })
+      .filter(r => r.diasAtraso >= 7)
+      .sort((a, b) => b.diasAtraso - a.diasAtraso)
+      .slice(0, 30)
 
     res.json({
     totalNotas,
@@ -1761,11 +2631,51 @@ app.get('/api/dashboard', async (req, res) => {
     fretistasAtivos,
     notasHoje,
     vencimentosProximos: vencimentosProcessados,
+    atrasosTop,
     resumoMensal,
     alertas
   })
   } catch (error) {
     console.error('Erro ao buscar dados do dashboard:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Endpoint para opções de filtros dinâmicos
+app.get('/api/dashboard/filter-options', async (req, res) => {
+  try {
+    // Buscar todas as opções únicas para os filtros
+    const { data: registros, error } = await supabase
+      .from('registros')
+      .select('fretista, placa, nome_fantasia, rede, vendedor, uf, status, situacao')
+    
+    if (error) {
+      console.error('Erro ao buscar opções de filtros:', error)
+      return res.status(500).json({ error: 'Erro ao buscar opções de filtros' })
+    }
+
+    // Extrair valores únicos para cada filtro
+    const fretistas = [...new Set(registros.map(r => r.fretista).filter(Boolean))].sort()
+    const placas = [...new Set(registros.map(r => r.placa).filter(Boolean))].sort()
+    const clientes = [...new Set(registros.map(r => r.nome_fantasia).filter(Boolean))].sort()
+    const redes = [...new Set(registros.map(r => r.rede).filter(Boolean))].sort()
+    const vendedores = [...new Set(registros.map(r => r.vendedor).filter(Boolean))].sort()
+    const ufs = [...new Set(registros.map(r => r.uf).filter(Boolean))].sort()
+    const statusList = [...new Set(registros.map(r => r.status).filter(Boolean))].sort()
+    const situacoes = [...new Set(registros.map(r => r.situacao).filter(Boolean))].sort()
+
+    res.json({
+      fretistas,
+      placas,
+      clientes,
+      redes,
+      vendedores,
+      ufs,
+      status: statusList,
+      situacoes
+    })
+  } catch (error) {
+    console.error('Erro ao buscar opções de filtros:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
   }
 })
@@ -1783,10 +2693,208 @@ app.get('/api/registros', async (req, res) => {
       console.error('Erro ao buscar registros:', error)
       return res.status(500).json({ error: 'Erro ao buscar registros' })
     }
-    
-    res.json(registros || [])
+    // Preencher/normalizar nome_fantasia a partir da tabela clientes (join por CNPJ)
+    const registrosArr = Array.isArray(registros) ? registros : []
+    const cnpjsSet = new Set(
+      registrosArr
+        .map(r => (r.cnpj_cpf_destinatario || '').replace(/[^\d]/g, ''))
+        .filter(Boolean)
+    )
+
+    if (cnpjsSet.size > 0) {
+      const cnpjs = Array.from(cnpjsSet)
+      const { data: clientesJoin, error: joinError } = await supabase
+        .from('clientes')
+        .select('cnpj, nome_fantasia, razao_social')
+        .in('cnpj', cnpjs)
+
+      if (joinError) {
+        console.error('Erro ao buscar clientes para join:', joinError)
+      } else {
+        const clientesMap = new Map(
+          (clientesJoin || []).map(c => [String(c.cnpj).replace(/[^\d]/g, ''), c])
+        )
+
+        for (const r of registrosArr) {
+          const cnpjKey = (r.cnpj_cpf_destinatario || '').replace(/[^\d]/g, '')
+          const cli = clientesMap.get(cnpjKey)
+          if (cli) {
+            // Preferir nome_fantasia do clientes; fallback para o existente ou razão social
+            r.nome_fantasia = cli.nome_fantasia || r.nome_fantasia || cli.razao_social || r.razao_social || r.nome_fantasia
+            // Opcional: garantir campo auxiliar 'cliente' para relatórios existentes
+            if (!r.cliente) {
+              r.cliente = r.nome_fantasia || cli.razao_social || ''
+            }
+          }
+        }
+      }
+    }
+
+    res.json(registrosArr)
   } catch (error) {
     console.error('Erro ao buscar registros:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Endpoint para sincronizar campo pefin baseado no vencimento quando vazio
+app.post('/api/registros/sync-pefin', async (req, res) => {
+  try {
+    const { data: registros, error } = await supabase
+      .from('registros')
+      .select('id, pefin, data_vencimento')
+
+    if (error) {
+      console.error('Erro ao listar registros para sincronização:', error)
+      return res.status(500).json({ error: 'Falha ao listar registros', details: error.message })
+    }
+
+    const hoje = new Date()
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+    const msPerDay = 24 * 60 * 60 * 1000
+
+    let atualizados = 0
+    for (const r of registros || []) {
+      const atual = r.pefin && String(r.pefin).trim()
+      if (atual) continue
+
+      let novoPefin = null
+      if (r.data_vencimento) {
+        try {
+          let dv
+          if (typeof r.data_vencimento === 'string' && r.data_vencimento.includes('/')) {
+            const [dia, mes, ano] = r.data_vencimento.split('/')
+            dv = new Date(ano, mes - 1, dia)
+          } else {
+            dv = new Date(r.data_vencimento)
+          }
+          const diffDays = Math.floor((startOfDay(dv) - startOfDay(hoje)) / msPerDay)
+          if (diffDays < 0) novoPefin = 'Vencido'
+          else if (diffDays === 0) novoPefin = 'Vence hoje'
+          else if (diffDays <= 7) novoPefin = `Vence em ${diffDays}d`
+          else novoPefin = 'Em dia'
+        } catch (e) {
+          // ignora erros de parse
+        }
+      }
+
+      if (novoPefin) {
+        const { error: upErr } = await supabase
+          .from('registros')
+          .update({ pefin: novoPefin })
+          .eq('id', r.id)
+        if (!upErr) atualizados++
+      }
+    }
+
+    return res.json({ message: 'Sincronização concluída', atualizados })
+  } catch (e) {
+    console.error('Erro ao sincronizar pefin:', e)
+    return res.status(500).json({ error: 'Erro ao sincronizar pefin', details: e.message })
+  }
+})
+
+// Endpoint para atualizar um registro
+app.put('/api/registros/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    // Campos permitidos para edição
+    const allowed = [
+      'status',
+      'situacao',
+      'pefin',
+      'data_entrega',
+      'valor_total',
+      'fretista',
+      'placa',
+      'observacoes'
+    ]
+
+    const updateData = Object.fromEntries(
+      Object.entries(req.body).filter(([key]) => allowed.includes(key))
+    )
+
+    // Normaliza o status para valores permitidos pelo banco
+    if (typeof updateData.status === 'string') {
+      const STATUS_MAP_DB = {
+        'Pendente': 'PENDENTE',
+        'pendente': 'PENDENTE',
+        'PENDENTE': 'PENDENTE',
+        'Entregue': 'ENTREGUE',
+        'entregue': 'ENTREGUE',
+        'ENTREGUE': 'ENTREGUE',
+        'Cancelada': 'CANCELADO',
+        'cancelada': 'CANCELADO',
+        'CANCELADA': 'CANCELADO',
+        'Cancelado': 'CANCELADO',
+        'cancelado': 'CANCELADO',
+        'CANCELADO': 'CANCELADO',
+        'Processado': 'PROCESSADO',
+        'processado': 'PROCESSADO',
+        'PROCESSADO': 'PROCESSADO'
+      }
+
+      const originalStatus = updateData.status
+      const normalized = STATUS_MAP_DB[originalStatus] || 'PROCESSADO'
+      updateData.status = normalized
+
+      // Se o status original não for suportado, registra observação para rastreio
+      if (!STATUS_MAP_DB[originalStatus]) {
+        const stamp = new Date().toISOString()
+        const prevObs = updateData.observacoes || ''
+        const prefix = prevObs ? prevObs + '\n' : ''
+        updateData.observacoes = `${prefix}[${stamp}] status_custom: ${originalStatus}`
+      }
+    }
+
+    // Buscar o registro atual para obter a placa se necessário
+    const { data: existing, error: fetchErr } = await supabase
+      .from('registros')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (fetchErr && fetchErr.code !== 'PGRST116') {
+      console.error('Erro ao obter registro existente:', fetchErr)
+      return res.status(500).json({ error: 'Falha ao ler registro existente' })
+    }
+
+    // Se houver alteração ou presença de placa, resolver fretista pela tabela 'fretistas'
+    const placaFinal = updateData.placa || existing?.placa
+    if (placaFinal) {
+      try {
+        const nomeFretista = await buscarFretistaSupabase(placaFinal)
+        if (nomeFretista) {
+          updateData.fretista = nomeFretista
+        }
+      } catch (e) {
+        console.error('Falha ao resolver fretista via Supabase durante update:', e)
+      }
+    }
+
+    // Marcar atualização
+    updateData.updated_at = new Date().toISOString()
+
+    const { data, error } = await supabase
+      .from('registros')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single()
+
+    if (error) {
+      console.error('Erro ao atualizar registro:', error)
+      return res.status(500).json({ error: 'Erro ao atualizar registro', details: error.message })
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: 'Registro não encontrado' })
+    }
+
+    res.json({ success: true, data })
+  } catch (error) {
+    console.error('Erro no endpoint de atualização de registro:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
   }
 })
@@ -1979,14 +3087,34 @@ app.post('/api/relatorios/gerar', async (req, res) => {
 // Endpoint para exportar relatório
 app.post('/api/relatorios/exportar', async (req, res) => {
   try {
-    const { tipo, dataInicio, dataFim, formato } = req.body
+    const { tipo, dataInicio, dataFim, formato, fretista, placa, cliente, status, ordenacao } = req.body
     
     let query = supabase.from('registros').select('*')
     
     if (dataInicio && dataFim) {
       query = query.gte('data_emissao', dataInicio).lte('data_emissao', dataFim)
     }
-    
+
+    // Filtros adicionais opcionais para refletir a visualização do frontend
+    if (fretista) {
+      query = query.eq('fretista', fretista)
+    }
+    if (placa) {
+      query = query.eq('placa', placa)
+    }
+    if (cliente) {
+      query = query.eq('nome_fantasia', cliente)
+    }
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    // Ordenação opcional (padrão por nome_fantasia e numero_nf)
+    const ordens = String(ordenacao || 'nome_fantasia,numero_nf').split(',').map(s => s.trim()).filter(Boolean)
+    for (const campo of ordens) {
+      query = query.order(campo, { ascending: true })
+    }
+
     const { data: registros, error } = await query
     
     if (error) {
@@ -2010,8 +3138,66 @@ app.post('/api/relatorios/exportar', async (req, res) => {
       res.setHeader('Content-Disposition', `attachment; filename=relatorio_${tipo}_${new Date().toISOString().split('T')[0]}.json`)
       res.json(registros)
       
+    } else if (formato === 'pdf') {
+      // Gerar PDF simples com lista de registros
+      try {
+        const pdfDoc = await PDFDocument.create()
+        let page = pdfDoc.addPage([595, 842]) // A4
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+        const { width, height } = page.getSize()
+        const marginX = 40
+        let cursorY = height - 50
+
+        // Cabeçalho
+        const titulo = `Relatório ${tipo || ''}`.trim()
+        page.drawText(titulo || 'Relatório', { x: marginX, y: cursorY, size: 14, font, color: rgb(0, 0.4, 0) })
+        cursorY -= 18
+        const periodoTxt = `Período: ${dataInicio || '-'} até ${dataFim || '-'}`
+        page.drawText(periodoTxt, { x: marginX, y: cursorY, size: 10, font })
+        cursorY -= 22
+
+        // Colunas
+        const headers = ['NF', 'Cliente', 'Fretista', 'Valor', 'Emissão', 'Status']
+        const colX = [marginX, marginX + 70, marginX + 250, marginX + 420, marginX + 480, marginX + 520]
+        headers.forEach((h, i) => page.drawText(h, { x: colX[i], y: cursorY, size: 9, font }))
+        cursorY -= 12
+        page.drawText(''.padEnd(540, '—'), { x: marginX, y: cursorY, size: 9, font })
+        cursorY -= 12
+
+        const fmt = (v) => (v == null ? '' : String(v))
+        for (const r of registros) {
+          const line = [
+            fmt(r.numero_nf),
+            fmt(r.nome_fantasia || r.cliente),
+            fmt(r.fretista),
+            fmt(r.valor_total),
+            fmt(r.data_emissao),
+            fmt(r.status || r.situacao)
+          ]
+
+          // Nova página quando necessário
+          if (cursorY < 60) {
+            page = pdfDoc.addPage([595, 842])
+            cursorY = height - 50
+          }
+
+          line.forEach((text, i) => {
+            const clipped = text.length > 28 && i === 1 ? text.slice(0, 28) + '…' : text
+            page.drawText(clipped, { x: colX[i], y: cursorY, size: 9, font })
+          })
+          cursorY -= 12
+        }
+
+        const pdfBytes = await pdfDoc.save()
+        res.setHeader('Content-Type', 'application/pdf')
+        res.setHeader('Content-Disposition', `attachment; filename=relatorio_${tipo || 'geral'}_${new Date().toISOString().split('T')[0]}.pdf`)
+        return res.send(Buffer.from(pdfBytes))
+      } catch (errPdf) {
+        console.error('Erro ao gerar PDF:', errPdf)
+        return res.status(500).json({ error: 'Falha ao gerar PDF' })
+      }
     } else {
-      // Para PDF e Excel, retornar dados JSON que o frontend pode processar
+      // Para Excel (ou outros), retornar dados JSON para processamento no frontend
       res.json({
         dados: registros,
         formato: formato,
@@ -2089,6 +3275,147 @@ app.get('/api/usuarios', async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar usuários:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Endpoint para importar clientes via CSV e fazer upsert por CNPJ
+// Body esperado: { "path": "C:\\Users\\BAMG\\Desktop\\appnf\\listaclientesatualizada.csv" }
+app.post('/api/clientes/import', async (req, res) => {
+  try {
+    const { path: csvPath } = req.body || {}
+
+    if (!csvPath) {
+      return res.status(400).json({ error: 'Informe o caminho do arquivo CSV em "path".' })
+    }
+
+    if (!fs.existsSync(csvPath)) {
+      return res.status(404).json({ error: `Arquivo CSV não encontrado em: ${csvPath}` })
+    }
+
+    // Função para normalizar cabeçalhos
+    const normalizeKey = (str) =>
+      String(str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+
+    const KEY_MAP = {
+      cnpj: 'cnpj',
+      cnpj_cpf: 'cnpj',
+      cpf: 'cnpj',
+      razao_social: 'razao_social',
+      nome_fantasia: 'nome_fantasia',
+      rede: 'rede',
+      uf: 'uf',
+      vendedor: 'vendedor',
+      codigo: 'codigo',
+      loja: 'loja',
+      endereco: 'endereco',
+      bairro: 'bairro',
+      municipio: 'municipio',
+      municipio_cidade: 'municipio',
+      cidade: 'municipio',
+      cep: 'cep'
+    }
+
+    const batchSize = 500
+    let currentBatchMap = new Map() // cnpj -> cliente
+    let totalRows = 0
+    let insertedOrUpdated = 0
+    let skipped = 0
+    let firstError = null
+
+    const flushBatch = async () => {
+      const currentBatch = Array.from(currentBatchMap.values())
+      if (currentBatch.length === 0) return
+      const { error } = await supabase
+        .from('clientes')
+        .upsert(currentBatch, { onConflict: 'cnpj' })
+      if (error) {
+        console.error('Erro ao upsert lote de clientes:', error)
+        if (!firstError) firstError = error
+        throw error
+      }
+      insertedOrUpdated += currentBatch.length
+      currentBatchMap.clear()
+    }
+
+    // Stream do CSV com delimitador ;
+    await new Promise((resolve, reject) => {
+      const stream = fs.createReadStream(csvPath).pipe(csv({ separator: ';', mapHeaders: ({ header }) => normalizeKey(header) }))
+        .on('data', (row) => {
+          try {
+            totalRows++
+            // Mapear para chaves esperadas
+            const mapped = {}
+            for (const [rawKey, value] of Object.entries(row)) {
+              const key = KEY_MAP[rawKey] || rawKey
+              mapped[key] = typeof value === 'string' ? value.trim() : value
+            }
+
+            // Limpar CNPJ/CPF
+            const cnpj = (mapped.cnpj || '').replace(/[^\d]/g, '')
+            if (!cnpj) {
+              skipped++
+              return
+            }
+
+            const cliente = {
+              cnpj,
+              razao_social: mapped.razao_social || null,
+              nome_fantasia: mapped.nome_fantasia || null,
+              rede: mapped.rede || null,
+              uf: mapped.uf || null,
+              vendedor: mapped.vendedor || null,
+              codigo: mapped.codigo || null,
+              loja: mapped.loja || null,
+              endereco: mapped.endereco || null,
+              bairro: mapped.bairro || null,
+              municipio: mapped.municipio || null,
+              cep: mapped.cep || null
+            }
+
+            // Em caso de duplicatas no mesmo lote, mantenha o último registro
+            currentBatchMap.set(cnpj, cliente)
+            if (currentBatchMap.size >= batchSize) {
+              // Pausar stream e flush
+              stream.pause()
+              flushBatch()
+                .then(() => stream.resume())
+                .catch(reject)
+            }
+          } catch (err) {
+            console.error('Erro ao processar linha do CSV:', err)
+            if (!firstError) firstError = err
+          }
+        })
+        .on('end', async () => {
+          try {
+            await flushBatch()
+            resolve()
+          } catch (err) {
+            reject(err)
+          }
+        })
+        .on('error', (err) => {
+          reject(err)
+        })
+    })
+
+    res.json({
+      success: true,
+      message: 'Importação concluída com upsert por CNPJ',
+      arquivo: csvPath,
+      total_linhas: totalRows,
+      inseridos_atualizados: insertedOrUpdated,
+      ignorados_sem_cnpj: skipped,
+      primeiro_erro: firstError ? firstError.message : null
+    })
+  } catch (error) {
+    console.error('Erro no endpoint de importação de clientes:', error)
+    res.status(500).json({ error: 'Falha na importação de clientes', details: error.message })
   }
 })
 
@@ -2219,6 +3546,110 @@ app.get('/api/dashboard/top-clients', async (req, res) => {
   } catch (error) {
     console.error('Error fetching top clients:', error)
     res.status(500).json({ error: 'Failed to fetch top clients' })
+  }
+})
+
+// Endpoint de saúde do sistema: API, Banco de Dados e Google Sheets
+function checkGoogleSheets(sheetId) {
+  return new Promise((resolve) => {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`
+      const req = https.get(url, (res) => {
+        const ok = res.statusCode >= 200 && res.statusCode < 300
+        resolve(ok)
+      })
+      req.on('error', () => resolve(false))
+      req.setTimeout(5000, () => {
+        try { req.destroy() } catch (e) {}
+        resolve(false)
+      })
+    } catch (e) {
+      resolve(false)
+    }
+  })
+}
+
+app.get('/api/health', async (req, res) => {
+  const result = {
+    api: 'offline',
+    database: 'disconnected',
+    sheets: 'no_connection',
+    timestamp: new Date().toISOString()
+  }
+
+  // Verificar conexão com o banco (Supabase)
+  try {
+    const { error } = await supabase
+      .from('registros')
+      .select('id', { count: 'exact', head: true })
+      .limit(1)
+    result.database = error ? 'disconnected' : 'connected'
+  } catch (e) {
+    result.database = 'disconnected'
+  }
+
+  // A API só é considerada online se estiver conseguindo conexão com o Supabase
+  result.api = result.database === 'connected' ? 'online' : 'offline'
+
+  // Verificar acesso à Google Sheets (pública ou com permissão)
+  const sheetId = process.env.GOOGLE_SHEETS_ID || '1c9DWogDs9ZC0BIrI8TN3ptuWTA_q21oL65tn44BDcaI'
+  try {
+    const ok = await checkGoogleSheets(sheetId)
+    result.sheets = ok ? 'synced' : 'no_connection'
+  } catch (e) {
+    result.sheets = 'no_connection'
+  }
+
+  res.json(result)
+})
+
+// Endpoint para adicionar linha ao Google Sheets
+app.post('/add-row', async (req, res) => {
+  try {
+    const payload = req.body
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      return res.status(400).json({ error: 'Payload inválido. Esperado um objeto.' })
+    }
+
+    await appendRowToGoogleSheets(payload)
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Erro ao adicionar linha ao Google Sheets:', error)
+    res.status(500).json({ error: 'Falha ao enviar ao Google Sheets', details: error.message })
+  }
+})
+
+// Endpoint para atualizar linha existente no Google Sheets
+app.post('/update-row', async (req, res) => {
+  try {
+    const payload = req.body
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      return res.status(400).json({ error: 'Payload inválido. Esperado um objeto.' })
+    }
+
+    await updateRowInGoogleSheets(payload)
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Erro ao atualizar linha no Google Sheets:', error)
+    res.status(500).json({ error: 'Falha ao atualizar no Google Sheets', details: error.message })
+  }
+})
+
+// Endpoint de diagnóstico para testar append no Google Sheets
+app.get('/api/test-sheets', async (req, res) => {
+  try {
+    const testPayload = {
+      numero_nf: 'TEST-123',
+      status: 'TEST',
+      observacoes: 'Diagnostic from /api/test-sheets',
+      timestamp: new Date().toISOString()
+    }
+
+    await appendRowToGoogleSheets(testPayload)
+    res.json({ success: true, payload: testPayload })
+  } catch (error) {
+    console.error('Diagnóstico: falha ao adicionar linha ao Google Sheets:', error)
+    res.status(500).json({ error: 'Falha no diagnóstico do Google Sheets', details: error.message })
   }
 })
 

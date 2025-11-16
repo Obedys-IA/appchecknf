@@ -5,6 +5,7 @@ import { signOut } from '../lib/supabase'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { Badge } from './ui/badge'
+import ThemeToggle from './ThemeToggle'
 import { 
   Home, 
   FileText, 
@@ -47,6 +48,7 @@ const Layout = ({ children }) => {
 
   // Definir navegação baseada no tipo de usuário
   const getNavigation = () => {
+    const tipoNormalizado = (effectiveUserData?.tipo || '').toLowerCase()
     const baseNav = [
       // Dashboard - Acesso para administrador, colaborador e gerencia
       { name: 'Dashboard', href: '/dashboard', icon: Home, types: ['administrador', 'colaborador', 'gerencia'] },
@@ -71,23 +73,23 @@ const Layout = ({ children }) => {
     ]
 
     // Para usuário novo/pendente, mostrar apenas o perfil
-    if (effectiveUserData?.tipo === 'novo' || effectiveUserData?.status === 'pendente') {
+    if (tipoNormalizado === 'novo' || effectiveUserData?.status === 'pendente') {
       return baseNav.filter(item => item.href === '/perfil')
     }
 
     // Para usuário fretista, mostrar apenas o perfil
-    if (effectiveUserData?.tipo === 'fretista') {
+    if (tipoNormalizado === 'fretista') {
       return baseNav.filter(item => item.href === '/perfil')
     }
 
     // Para usuário gerencia, acesso a dashboard, registros, relatórios e perfil (sem processar PDFs)
-    if (effectiveUserData?.tipo === 'gerencia') {
+    if (tipoNormalizado === 'gerencia') {
       return baseNav.filter(item => 
         ['dashboard', 'registros', 'relatorios', 'perfil'].includes(item.href.replace('/', ''))
       )
     }
 
-    return baseNav.filter(item => item.types.includes(effectiveUserData?.tipo))
+    return baseNav.filter(item => item.types.includes(tipoNormalizado))
   }
 
   const navigation = getNavigation()
@@ -103,11 +105,11 @@ const Layout = ({ children }) => {
       'gerencia': 'bg-purple-100 text-purple-800',
       'fretista': 'bg-green-100 text-green-800'
     }
-    return colors[tipo] || 'bg-gray-100 text-gray-800'
+    return colors[(tipo || '').toLowerCase()] || 'bg-gray-100 text-gray-800'
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
@@ -152,7 +154,7 @@ const Layout = ({ children }) => {
                 })}
               </nav>
             </CardContent>
-            <div className="border-t p-4 bg-gray-50">
+            <div className="border-t p-4 bg-background">
               <div className="flex items-center mb-4">
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center shadow-md">
@@ -163,16 +165,19 @@ const Layout = ({ children }) => {
                 </div>
                 <div className="ml-3 flex-1">
                   <p className="text-sm font-semibold text-gray-900">{effectiveUserData?.nome}</p>
-                  <Badge variant="secondary" className={`text-xs ${getUserTypeColor(effectiveUserData?.tipo)}`}>
-                    {effectiveUserData?.tipo}
-                  </Badge>
-                </div>
+                <Badge variant="secondary" className={`text-xs ${getUserTypeColor(effectiveUserData?.tipo)}`}>
+                  {effectiveUserData?.tipo}
+                </Badge>
+              <div className="mt-3">
+                <ThemeToggle />
               </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                size="sm"
-                className="w-full hover:bg-red-50 hover:border-red-200 hover:text-red-700"
+              </div>
+            </div>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="sm"
+              className="w-full hover:bg-red-50 hover:border-red-200 hover:text-red-700"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
@@ -213,7 +218,7 @@ const Layout = ({ children }) => {
               })}
             </nav>
           </CardContent>
-          <div className="border-t p-4 bg-gray-50">
+          <div className="border-t p-4 bg-background">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center shadow-md">
@@ -228,6 +233,9 @@ const Layout = ({ children }) => {
                   {effectiveUserData?.tipo}
                 </Badge>
               </div>
+            </div>
+            <div className="mb-3">
+              <ThemeToggle />
             </div>
             <Button
               onClick={handleLogout}
@@ -245,7 +253,7 @@ const Layout = ({ children }) => {
       {/* Main content */}
       <div className="lg:pl-72">
         {/* Top bar for mobile */}
-        <div className="lg:hidden flex items-center justify-between h-16 px-4 bg-white/80 backdrop-blur-md border-b shadow-sm">
+        <div className="lg:hidden flex items-center justify-between h-16 px-4 bg-background backdrop-blur-md border-b shadow-sm">
           <Button
             onClick={() => setSidebarOpen(true)}
             variant="ghost"
@@ -258,6 +266,7 @@ const Layout = ({ children }) => {
             <img className="h-8 w-auto mr-2" src="/logocanhotos.png" alt="CHECKNF - GDM" />
             <span className="text-lg font-bold text-green-800">CHECKNF</span>
           </div>
+          <ThemeToggle />
           <div className="w-6" /> {/* Spacer */}
         </div>
 

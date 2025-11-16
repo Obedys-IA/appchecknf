@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children, allowedTypes = [] }) => {
       id: user.id,
       nome: user.email?.split('@')[0] || 'Usuário',
       email: user.email,
-      tipo: 'administrador', // Tipo padrão para permitir acesso
+      tipo: 'novo', // Fallback padrão: usuário aguardando aprovação
       ativo: true
     }
   }
@@ -48,8 +48,10 @@ const ProtectedRoute = ({ children, allowedTypes = [] }) => {
     )
   }
 
+  const normalizedTipo = (effectiveUserData.tipo || '').toLowerCase()
+
   // Verificar se o usuário está aprovado
-  if (effectiveUserData.tipo === 'novo') {
+  if (normalizedTipo === 'novo') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-md max-w-md">
@@ -74,7 +76,7 @@ const ProtectedRoute = ({ children, allowedTypes = [] }) => {
   }
 
   // Verificar se o tipo de usuário tem permissão para acessar a rota
-  if (allowedTypes.length > 0 && !allowedTypes.includes(effectiveUserData.tipo)) {
+  if (allowedTypes.length > 0 && !allowedTypes.includes(normalizedTipo)) {
     return <Navigate to="/unauthorized" replace />
   }
 

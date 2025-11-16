@@ -2,263 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { 
   BarChart3, 
-  TrendingUp, 
-  TrendingDown, 
   Download, 
-  Calendar, 
   Filter,
   FileText,
   PieChart,
   Activity,
   DollarSign,
-  Package,
   Truck,
   Users,
   Clock,
   MapPin,
   Target,
   Zap,
-  Eye,
   RefreshCw,
-  Settings,
-  ChevronDown,
-  ChevronUp,
   ArrowUpRight,
   ArrowDownRight,
-  AlertCircle,
   CheckCircle,
-  XCircle,
   Minus,
-  Plus,
-  Search,
-  Calendar as CalendarIcon,
   FileBarChart,
   LineChart,
-  MoreHorizontal,
   AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import PageHeader from '../components/PageHeader.jsx';
+import { getRelatoriosStatistics, getFilterOptions, getRegistrosWithFilters } from '../lib/supabase';
 
-const Relatorios = () => {
-  const { userData } = useAuth();
-  const [filtros, setFiltros] = useState({
-    dataInicio: '',
-    dataFim: '',
-    tipo: '',
-    status: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [dadosRelatorio, setDadosRelatorio] = useState({
-    vendas: [],
-    entregas: [],
-    usuarios: [],
-    financeiro: {}
-  });
-  const [activeTab, setActiveTab] = useState('overview');
-  const [timeRange, setTimeRange] = useState('30d');
-
-  // Dados simulados para demonstração
-  const estatisticas = {
-    vendas: {
-      total: 125000,
-      variacao: 12.5,
-      meta: 150000,
-      pedidos: 342
-    },
-    entregas: {
-      total: 298,
-      concluidas: 276,
-      pendentes: 22,
-      taxa_sucesso: 92.6
-    },
-    financeiro: {
-      receita: 125000,
-      custos: 87500,
-      lucro: 37500,
-      margem: 30
-    },
-    usuarios: {
-      ativos: 156,
-      novos: 23,
-      fretistas: 45,
-      empresas: 78
-    }
+// Componente StatCard
+const StatCard = ({ title, value, subtitle, icon: Icon, color, variation, trend }) => {
+  const getVariacaoIcon = (variacao) => {
+    if (variacao > 0) return <ArrowUpRight className="w-4 h-4" />;
+    if (variacao < 0) return <ArrowDownRight className="w-4 h-4" />;
+    return <Minus className="w-4 h-4" />;
   };
 
-  const dadosGrafico = {
-    vendas: [
-      { mes: 'Jan', valor: 45000, pedidos: 120 },
-      { mes: 'Fev', valor: 52000, pedidos: 135 },
-      { mes: 'Mar', valor: 48000, pedidos: 128 },
-      { mes: 'Abr', valor: 61000, pedidos: 156 },
-      { mes: 'Mai', valor: 55000, pedidos: 142 },
-      { mes: 'Jun', valor: 67000, pedidos: 178 }
-    ],
-    entregas: [
-      { dia: 'Seg', concluidas: 45, pendentes: 5 },
-      { dia: 'Ter', concluidas: 52, pendentes: 3 },
-      { dia: 'Qua', concluidas: 48, pendentes: 7 },
-      { dia: 'Qui', concluidas: 61, pendentes: 4 },
-      { dia: 'Sex', concluidas: 55, pendentes: 2 },
-      { dia: 'Sab', concluidas: 35, pendentes: 1 },
-      { dia: 'Dom', concluidas: 28, pendentes: 0 }
-    ]
-  };
-
-  const topFretistas = [
-    { nome: 'João Silva', entregas: 45, avaliacao: 4.8, receita: 12500 },
-    { nome: 'Maria Santos', entregas: 38, avaliacao: 4.9, receita: 11200 },
-    { nome: 'Pedro Costa', entregas: 32, avaliacao: 4.7, receita: 9800 },
-    { nome: 'Ana Oliveira', entregas: 28, avaliacao: 4.6, receita: 8900 },
-    { nome: 'Carlos Lima', entregas: 25, avaliacao: 4.5, receita: 7800 }
-  ];
-
-  const regioes = [
-    { nome: 'Centro', entregas: 89, receita: 25600, crescimento: 15.2 },
-    { nome: 'Zona Norte', entregas: 76, receita: 22100, crescimento: 8.7 },
-    { nome: 'Zona Sul', entregas: 65, receita: 19800, crescimento: -2.1 },
-    { nome: 'Zona Leste', entregas: 45, receita: 14200, crescimento: 22.5 },
-    { nome: 'Zona Oeste', entregas: 23, receita: 8300, crescimento: 5.8 }
-  ];
-
-  // Carregar dados reais dos relatórios
-  const carregarDadosRelatorios = async () => {
-    setLoading(true);
-    try {
-      // Buscar estatísticas gerais
-      const responseStats = await fetch('/api/relatorios/estatisticas', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (responseStats.ok) {
-        const stats = await responseStats.json();
-        setDadosRelatorio(prev => ({
-          ...prev,
-          ...stats
-        }));
-      }
-
-      // Buscar dados de vendas por período
-      const responseVendas = await fetch(`/api/relatorios/vendas?inicio=${filtros.dataInicio}&fim=${filtros.dataFim}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (responseVendas.ok) {
-        const vendas = await responseVendas.json();
-        setDadosRelatorio(prev => ({
-          ...prev,
-          vendas: vendas
-        }));
-      }
-
-    } catch (error) {
-      console.error('Erro ao carregar dados dos relatórios:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Carregar dados ao montar o componente
-  useEffect(() => {
-    if (canViewReports) {
-      carregarDadosRelatorios();
-    }
-  }, [filtros.dataInicio, filtros.dataFim, canViewReports]);
-
-  const gerarRelatorio = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/relatorios/gerar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tipo: filtros.tipo,
-          dataInicio: filtros.dataInicio,
-          dataFim: filtros.dataFim,
-          formato: 'json'
-        })
-      });
-
-      if (response.ok) {
-        const relatorio = await response.json();
-        alert('Relatório gerado com sucesso!');
-        // Atualizar dados com o relatório gerado
-        setDadosRelatorio(prev => ({
-          ...prev,
-          ...relatorio
-        }));
-      } else {
-        throw new Error('Erro ao gerar relatório');
-      }
-    } catch (error) {
-      console.error('Erro ao gerar relatório:', error);
-      alert('Erro ao gerar relatório');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const exportarRelatorio = async (formato) => {
-    try {
-      const response = await fetch('/api/relatorios/exportar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tipo: filtros.tipo,
-          dataInicio: filtros.dataInicio,
-          dataFim: filtros.dataFim,
-          formato: formato
-        })
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `relatorio_${formato}_${new Date().toISOString().split('T')[0]}.${formato}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        alert(`Relatório exportado em formato ${formato.toUpperCase()}!`);
-      } else {
-        throw new Error('Erro ao exportar relatório');
-      }
-    } catch (error) {
-      console.error('Erro ao exportar relatório:', error);
-      alert('Erro ao exportar relatório');
-    }
-  };
-
-  const getVariacaoIcon = (valor) => {
-    if (valor > 0) return <ArrowUpRight className="w-4 h-4 text-green-500" />;
-    if (valor < 0) return <ArrowDownRight className="w-4 h-4 text-red-500" />;
-    return <Minus className="w-4 h-4 text-gray-500" />;
-  };
-
-  const getVariacaoColor = (valor) => {
-    if (valor > 0) return 'text-green-600';
-    if (valor < 0) return 'text-red-600';
+  const getVariacaoColor = (variacao) => {
+    if (variacao > 0) return 'text-green-600';
+    if (variacao < 0) return 'text-red-600';
     return 'text-gray-600';
   };
 
-  const StatCard = ({ title, value, subtitle, icon: Icon, color, variation, trend }) => (
+  return (
     <Card className="hover:shadow-lg transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
@@ -305,15 +92,336 @@ const Relatorios = () => {
       </CardContent>
     </Card>
   );
+};
 
+const Relatorios = () => {
+  const { userData } = useAuth();
+  
   // Verificação de permissões
-  const isAdmin = userData?.tipo === 'administrador';
-  const isGerencia = userData?.tipo === 'gerencia';
-  const canViewReports = isAdmin || isGerencia;
+  const tipo = (userData?.tipo || '').toLowerCase();
+  const isAdmin = tipo === 'administrador';
+  const isGerencia = tipo === 'gerencia';
+  const isColaborador = tipo === 'colaborador';
+  const canViewReports = isAdmin || isGerencia || isColaborador;
+  
+  const [filtros, setFiltros] = useState({
+    dataInicio: '',
+    dataFim: '',
+    tipo: '',
+    status: '',
+    fretista: '',
+    placa: '',
+    cliente: '',
+    rede: '',
+    vendedor: '',
+    uf: '',
+    situacao: '',
+    busca: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [timeRange, setTimeRange] = useState('30d');
+  const [registros, setRegistros] = useState([]);
+
+  // Estado para opções de filtros
+  const [filterOptions, setFilterOptions] = useState({
+    fretistas: [],
+    placas: [],
+    clientes: [],
+    redes: [],
+    vendedores: [],
+    ufs: [],
+    status: [],
+    situacoes: []
+  });
+
+  // Estado para dados do relatório
+  const [dadosRelatorio, setDadosRelatorio] = useState({
+    estatisticas: {
+      vendas: { total: 0, variacao: 0, meta: 0, pedidos: 0 },
+      entregas: { total: 0, concluidas: 0, pendentes: 0, taxa_sucesso: 0 },
+      financeiro: { receita: 0, custos: 0, lucro: 0, margem: 0 },
+      usuarios: { ativos: 0, novos: 0, fretistas: 0, empresas: 0 }
+    },
+    dadosGrafico: {
+      vendas: [],
+      entregas: []
+    },
+    topFretistas: [],
+    topRegioes: [],
+    registros: []
+  });
+
+  // Carregar dados reais dos relatórios
+  const carregarDadosRelatorios = async () => {
+    setLoading(true);
+    try {
+      // Usar as novas funções do Supabase
+      const { data: relatoriosData, error } = await getRelatoriosStatistics(filtros);
+      
+      if (error) {
+        console.error('Erro ao carregar dados dos relatórios:', error);
+        return;
+      }
+      
+      if (relatoriosData) {
+        setDadosRelatorio(relatoriosData);
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar dados dos relatórios:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carregar opções de filtros
+  useEffect(() => {
+    const loadFilterOptions = async () => {
+      const { data, error } = await getFilterOptions();
+      if (data && !error) {
+        setFilterOptions(data);
+      }
+    };
+    
+    if (canViewReports) {
+      loadFilterOptions();
+    }
+  }, [canViewReports]);
+
+  // Carregar dados ao montar o componente
+  useEffect(() => {
+    if (canViewReports) {
+      carregarDadosRelatorios();
+    }
+  }, [filtros.dataInicio, filtros.dataFim, canViewReports]);
+
+  // Carregar registros filtrados
+  const carregarRegistrosFiltrados = async () => {
+    try {
+      const { data, error } = await getRegistrosWithFilters(filtros);
+      if (error) {
+        console.error('Erro ao carregar registros filtrados:', error);
+        setRegistros([]);
+        return;
+      }
+      setRegistros(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar registros filtrados:', error);
+      setRegistros([]);
+    }
+  };
+
+  // Aplicar filtros: carregar estatísticas e registros
+  const aplicarFiltros = async () => {
+    await Promise.all([
+      carregarDadosRelatorios(),
+      carregarRegistrosFiltrados()
+    ]);
+  };
+
+  const gerarRelatorio = async () => {
+    setLoading(true);
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/relatorios/gerar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tipo: filtros.tipo,
+          dataInicio: filtros.dataInicio,
+          dataFim: filtros.dataFim,
+          formato: 'json'
+        })
+      });
+
+      if (response.ok) {
+        const relatorio = await response.json();
+        alert('Relatório gerado com sucesso!');
+        // Atualizar dados com o relatório gerado
+        setDadosRelatorio(prev => ({
+          ...prev,
+          ...relatorio
+        }));
+      } else {
+        throw new Error('Erro ao gerar relatório');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error);
+      alert('Erro ao gerar relatório');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const exportarRelatorio = async (formato) => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/relatorios/exportar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tipo: filtros.tipo,
+          dataInicio: filtros.dataInicio,
+          dataFim: filtros.dataFim,
+          formato: formato,
+          fretista: filtros.fretista || undefined,
+          placa: filtros.placa || undefined,
+          cliente: filtros.cliente || undefined,
+          status: filtros.status || undefined,
+          ordenacao: 'nome_fantasia,numero_nf'
+        })
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `relatorio_${formato}_${new Date().toISOString().split('T')[0]}.${formato}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        alert(`Relatório exportado em formato ${formato.toUpperCase()}!`);
+      } else {
+        throw new Error('Erro ao exportar relatório');
+      }
+    } catch (error) {
+      console.error('Erro ao exportar relatório:', error);
+      alert('Erro ao exportar relatório');
+    }
+  };
+
+  // Utilitários de resumo para WhatsApp
+  const abrirWhatsApp = (texto) => {
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  };
+
+  const formatCurrency = (valor) => {
+    try {
+      return `R$ ${Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } catch {
+      return `R$ ${valor}`;
+    }
+  };
+
+  const diasEmAtraso = (dataEmissao) => {
+    if (!dataEmissao) return 0;
+    const hoje = new Date();
+    const emissao = new Date(dataEmissao);
+    return Math.max(0, Math.floor((hoje - emissao) / (1000 * 60 * 60 * 24)));
+  };
+
+  const pendentesMais7Dias = () => {
+    const lista = (registros || []).filter(r => (r.status || '').toUpperCase() === 'PENDENTE' && diasEmAtraso(r.data_emissao) >= 7);
+    return lista.sort((a, b) => (a.nome_fantasia || '').localeCompare(b.nome_fantasia || ''));
+  };
+
+  const gerarResumoGeralDiario = () => {
+    const totalPendentes = (registros || []).filter(r => (r.status || '').toUpperCase() === 'PENDENTE').length;
+    const totalEntregues = (registros || []).filter(r => (r.status || '').toUpperCase() === 'ENTREGUE').length;
+    const totalCanceladas = (registros || []).filter(r => (r.status || '').toUpperCase() === 'CANCELADA').length;
+    const totalDevolvidas = (registros || []).filter(r => (r.status || '').toUpperCase() === 'DEVOLVIDA').length;
+    const eficiencia = (registros.length ? Math.round((totalEntregues / registros.length) * 100) : 0);
+
+    const pendentes = (registros || []).filter(r => (r.status || '').toUpperCase() === 'PENDENTE');
+    const noPrazo = pendentes
+      .filter(r => diasEmAtraso(r.data_emissao) < 7)
+      .sort((a, b) => (a.nome_fantasia || '').localeCompare(b.nome_fantasia || ''))
+      .slice(0, 10)
+      .map(r => `- ${r.fretista || '—'} - NF ${r.numero_nf || '—'} - ${r.nome_fantasia || '—'}`)
+      .join('\n');
+    const atrasados = pendentes
+      .filter(r => diasEmAtraso(r.data_emissao) >= 7)
+      .sort((a, b) => (a.nome_fantasia || '').localeCompare(b.nome_fantasia || ''))
+      .slice(0, 10)
+      .map(r => `- ${r.fretista || '—'} - NF ${r.numero_nf || '—'} - ${r.nome_fantasia || '—'}`)
+      .join('\n');
+
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    const texto = `📝 RESUMO GERAL DOS CANHOTOS – ATUALIZAÇÃO ${dataHoje}\n\n🟢 Recebidos: ${totalEntregues}\n🔴 Pendentes: ${totalPendentes}\n⚫ Cancelados: ${totalCanceladas}\n🟣 Devolução Total: ${totalDevolvidas}\n\n📈 Eficiência: ${eficiencia}%\n\n⏳ No prazo (≤ 7 dias):\n${noPrazo || '- Sem itens'}\n\n🔔 Atrasados (+7 dias):\n${atrasados || '- Sem itens'}\n\nObs.: Verificar canhotos pendentes acima de 7 dias.`;
+    abrirWhatsApp(texto);
+  };
+
+  const gerarResumoPorFretista = (nomeFretista) => {
+    const filtro = (registros || []).filter(r => (r.fretista || '').toLowerCase() === (nomeFretista || '').toLowerCase());
+    const recebidos = filtro.filter(r => (r.status || '').toUpperCase() === 'ENTREGUE').length;
+    const pendentes = filtro.filter(r => (r.status || '').toUpperCase() === 'PENDENTE');
+    const mediaRetorno = 0;
+
+    const pendNoPrazo = pendentes.filter(r => diasEmAtraso(r.data_emissao) < 7);
+    const pendAtrasados = pendentes.filter(r => diasEmAtraso(r.data_emissao) >= 7);
+
+    const gruposNoPrazo = pendNoPrazo.reduce((acc, r) => {
+      const data = new Date(r.data_emissao).toLocaleDateString('pt-BR');
+      acc[data] = acc[data] || [];
+      acc[data].push(r);
+      return acc;
+    }, {});
+
+    const gruposAtrasados = pendAtrasados.reduce((acc, r) => {
+      const data = new Date(r.data_emissao).toLocaleDateString('pt-BR');
+      acc[data] = acc[data] || [];
+      acc[data].push(r);
+      return acc;
+    }, {});
+
+    const linhasNoPrazo = Object.entries(gruposNoPrazo).map(([data, itens]) => {
+      const diaSemana = new Date(itens[0].data_emissao).toLocaleDateString('pt-BR', { weekday: 'long' });
+      const header = `\n⏳ Emissão: ${diaSemana}, ${data}`;
+      const rows = itens.map(r => `- NF ${r.numero_nf || '—'} – ${r.nome_fantasia || '—'} – ${diasEmAtraso(r.data_emissao)} dias - ${formatCurrency(r.valor_total || r.valor || 0)}`).join('\n');
+      return `${header}\n${rows}`;
+    }).join('\n');
+
+    const linhasAtrasados = Object.entries(gruposAtrasados).map(([data, itens]) => {
+      const diaSemana = new Date(itens[0].data_emissao).toLocaleDateString('pt-BR', { weekday: 'long' });
+      const header = `\n🔔 Emissão: ${diaSemana}, ${data}`;
+      const rows = itens.map(r => `- NF ${r.numero_nf || '—'} – ${r.nome_fantasia || '—'} – ${diasEmAtraso(r.data_emissao)} dias - ${formatCurrency(r.valor_total || r.valor || 0)}`).join('\n');
+      return `${header}\n${rows}`;
+    }).join('\n');
+
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    const texto = `📝 RESUMO DOS CANHOTOS POR FRETISTA – ATUALIZAÇÃO ${dataHoje}\n\n🚚 Fretista: ${nomeFretista}\n\n🟢 Recebidos: ${recebidos}\n🔴 Pendentes: ${pendentes.length}\n⏱️ Média retorno: ${mediaRetorno} dias\n\n⏳ No prazo (≤ 7 dias):${linhasNoPrazo || '\n- Sem pendentes'}\n\n🔔 Atrasados (+7 dias):${linhasAtrasados || '\n- Sem pendentes'}\n\nObs.: Priorizar coleta de canhotos atrasados.`;
+    abrirWhatsApp(texto);
+  };
+
+  const gerarResumoPorCliente = (nomeCliente) => {
+    const filtro = (registros || []).filter(r => (r.nome_fantasia || '').toLowerCase() === (nomeCliente || '').toLowerCase());
+    const recebidos = filtro.filter(r => (r.status || '').toUpperCase() === 'ENTREGUE').length;
+    const pendentes = filtro.filter(r => (r.status || '').toUpperCase() === 'PENDENTE');
+
+    const pendNoPrazo = pendentes.filter(r => diasEmAtraso(r.data_emissao) < 7);
+    const pendAtrasados = pendentes.filter(r => diasEmAtraso(r.data_emissao) >= 7);
+
+    const linhasNoPrazo = pendNoPrazo.map(r => `- NF ${r.numero_nf || '—'} – ${r.fretista || '—'} – ${diasEmAtraso(r.data_emissao)} dias - ${formatCurrency(r.valor_total || r.valor || 0)}`).join('\n');
+    const linhasAtrasados = pendAtrasados.map(r => `- NF ${r.numero_nf || '—'} – ${r.fretista || '—'} – ${diasEmAtraso(r.data_emissao)} dias - ${formatCurrency(r.valor_total || r.valor || 0)}`).join('\n');
+
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    const texto = `📝 RESUMO DOS CANHOTOS POR CLIENTE – ATUALIZAÇÃO ${dataHoje}\n\n🏢 Cliente: ${nomeCliente}\n\n🟢 Recebidos: ${recebidos}\n🔴 Pendentes: ${pendentes.length}\n⏱️ Média retorno: — dias\n\n⏳ No prazo (≤ 7 dias):\n${linhasNoPrazo || '- Sem pendentes'}\n\n🔔 Atrasados (+7 dias):\n${linhasAtrasados || '- Sem pendentes'}\n\nObs.: Priorizar retorno dos canhotos atrasados para este cliente.`;
+    abrirWhatsApp(texto);
+  };
+
+  const getVariacaoIcon = (valor) => {
+    if (valor > 0) return <ArrowUpRight className="w-4 h-4 text-green-500" />;
+    if (valor < 0) return <ArrowDownRight className="w-4 h-4 text-red-500" />;
+    return <Minus className="w-4 h-4 text-gray-500" />;
+  };
+
+  const getVariacaoColor = (valor) => {
+    if (valor > 0) return 'text-green-600';
+    if (valor < 0) return 'text-red-600';
+    return 'text-gray-600';
+  };
 
   if (!canViewReports) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+  <div className="dashboard-container max-w-[1400px] mx-auto py-6 space-y-6">
         <div className="max-w-7xl mx-auto">
           <Card className="border-red-200 bg-red-50">
             <CardContent className="p-8 text-center">
@@ -333,78 +441,258 @@ const Relatorios = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+  <div className="dashboard-container max-w-[1400px] mx-auto py-6 space-y-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Relatórios e Analytics
-            </h1>
-            <p className="text-gray-600 mt-2">Análise completa de performance e métricas do sistema</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <select
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
-              value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value)}
-            >
-              <option value="7d">Últimos 7 dias</option>
-              <option value="30d">Últimos 30 dias</option>
-              <option value="90d">Últimos 90 dias</option>
-              <option value="1y">Último ano</option>
-            </select>
-            <Button 
-              onClick={() => window.location.reload()}
-              variant="outline"
-              className="border-gray-200 hover:bg-gray-50"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Atualizar
-            </Button>
-            <Button 
-              onClick={gerarRelatorio}
-              disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              <FileBarChart className="w-4 h-4 mr-2" />
-              {loading ? 'Gerando...' : 'Gerar Relatório'}
-            </Button>
-          </div>
+        <PageHeader
+          title="Relatórios e Analytics"
+          subtitle="Análise completa de performance e métricas do sistema"
+          icon={<FileBarChart className="w-6 h-6 text-green-600" />}
+          className="bg-white/80 backdrop-blur-sm"
+        />
+        {/* Header actions preserved */}
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="border-gray-200 hover:bg-gray-50"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
+          <Button 
+            onClick={gerarRelatorio}
+            disabled={loading}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <FileBarChart className="w-4 h-4 mr-2" />
+            {loading ? 'Gerando...' : 'Gerar Relatório'}
+          </Button>
         </div>
+
+        {/* Filters Section */}
+        <Card className="shadow-2xl border dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-gray-800">
+              <Filter className="h-5 w-5" />
+              Filtros
+            </CardTitle>
+            <CardDescription>
+              Filtre os dados dos relatórios por período e outros critérios
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Primeira linha de filtros - Datas e Período */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Data Início</label>
+                <Input
+                  type="date"
+                  value={filtros.dataInicio}
+                  onChange={(e) => setFiltros({...filtros, dataInicio: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Data Fim</label>
+                <Input
+                  type="date"
+                  value={filtros.dataFim}
+                  onChange={(e) => setFiltros({...filtros, dataFim: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Período</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(e.target.value)}
+                >
+                  <option value="7d">Últimos 7 dias</option>
+                  <option value="30d">Últimos 30 dias</option>
+                  <option value="90d">Últimos 90 dias</option>
+                  <option value="1y">Último ano</option>
+                  <option value="custom">Período personalizado</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Segunda linha de filtros - Fretista, Placa, Cliente */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Fretista</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.fretista || ''}
+                  onChange={(e) => setFiltros({...filtros, fretista: e.target.value})}
+                >
+                  <option value="">Todos</option>
+                  {filterOptions.fretistas.map(fretista => (
+                    <option key={fretista} value={fretista}>{fretista}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Placa</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.placa || ''}
+                  onChange={(e) => setFiltros({...filtros, placa: e.target.value})}
+                >
+                  <option value="">Todas</option>
+                  {filterOptions.placas.map(placa => (
+                    <option key={placa} value={placa}>{placa}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Cliente</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.cliente || ''}
+                  onChange={(e) => setFiltros({...filtros, cliente: e.target.value})}
+                >
+                  <option value="">Todos</option>
+                  {filterOptions.clientes.map(cliente => (
+                    <option key={cliente} value={cliente}>{cliente}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Terceira linha de filtros - Rede, Vendedor, UF */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Rede</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.rede || ''}
+                  onChange={(e) => setFiltros({...filtros, rede: e.target.value})}
+                >
+                  <option value="">Todas</option>
+                  {filterOptions.redes.map(rede => (
+                    <option key={rede} value={rede}>{rede}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Vendedor</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.vendedor || ''}
+                  onChange={(e) => setFiltros({...filtros, vendedor: e.target.value})}
+                >
+                  <option value="">Todos</option>
+                  {filterOptions.vendedores.map(vendedor => (
+                    <option key={vendedor} value={vendedor}>{vendedor}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">UF</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.uf || ''}
+                  onChange={(e) => setFiltros({...filtros, uf: e.target.value})}
+                >
+                  <option value="">Todas</option>
+                  {filterOptions.ufs.map(uf => (
+                    <option key={uf} value={uf}>{uf}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Quarta linha de filtros - Status, Situação, Busca */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Status</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.status}
+                  onChange={(e) => setFiltros({...filtros, status: e.target.value})}
+                >
+                  <option value="">Todos</option>
+                  {filterOptions.status.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Situação</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  value={filtros.situacao || ''}
+                  onChange={(e) => setFiltros({...filtros, situacao: e.target.value})}
+                >
+                  <option value="">Todas</option>
+                  {filterOptions.situacoes.map(situacao => (
+                    <option key={situacao} value={situacao}>{situacao}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Busca Livre</label>
+                <Input
+                  type="text"
+                  placeholder="Digite para buscar..."
+                  value={filtros.busca || ''}
+                  onChange={(e) => setFiltros({...filtros, busca: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+               <Button onClick={aplicarFiltros}>Aplicar Filtros</Button>
+               <Button variant="outline" onClick={() => setFiltros({
+                 dataInicio: '',
+                 dataFim: '',
+                 tipo: '',
+                 status: '',
+                 fretista: '',
+                 placa: '',
+                 cliente: '',
+                 rede: '',
+                 vendedor: '',
+                 uf: '',
+                 situacao: '',
+                 busca: ''
+               })}>Limpar Filtros</Button>
+             </div>
+          </CardContent>
+        </Card>
 
         {/* Estatísticas Principais */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Receita Total"
-            value={`R$ ${estatisticas.vendas.total.toLocaleString()}`}
-            subtitle={`${estatisticas.vendas.pedidos} pedidos`}
+            value={`R$ ${dadosRelatorio.estatisticas.vendas.total.toLocaleString()}`}
+            subtitle={`${dadosRelatorio.estatisticas.vendas.pedidos} pedidos`}
             icon={DollarSign}
             color="bg-green-500"
-            variation={estatisticas.vendas.variacao}
+            variation={dadosRelatorio.estatisticas.vendas.variacao}
             trend={{
-              meta: `R$ ${estatisticas.vendas.meta.toLocaleString()}`,
-              progress: (estatisticas.vendas.total / estatisticas.vendas.meta) * 100
+              meta: `R$ ${dadosRelatorio.estatisticas.vendas.meta.toLocaleString()}`,
+              progress: (dadosRelatorio.estatisticas.vendas.total / dadosRelatorio.estatisticas.vendas.meta) * 100
             }}
           />
           
           <StatCard
             title="Entregas"
-            value={estatisticas.entregas.total}
-            subtitle={`${estatisticas.entregas.concluidas} concluídas`}
+            value={dadosRelatorio.estatisticas.entregas.total}
+            subtitle={`${dadosRelatorio.estatisticas.entregas.concluidas} concluídas`}
             icon={Truck}
             color="bg-blue-500"
             variation={8.2}
             trend={{
               meta: "95% taxa de sucesso",
-              progress: estatisticas.entregas.taxa_sucesso
+              progress: dadosRelatorio.estatisticas.entregas.taxa_sucesso
             }}
           />
           
           <StatCard
             title="Usuários Ativos"
-            value={estatisticas.usuarios.ativos}
-            subtitle={`+${estatisticas.usuarios.novos} novos`}
+            value={dadosRelatorio.estatisticas.usuarios.ativos}
+            subtitle={`+${dadosRelatorio.estatisticas.usuarios.novos} novos`}
             icon={Users}
             color="bg-purple-500"
             variation={15.3}
@@ -412,8 +700,8 @@ const Relatorios = () => {
           
           <StatCard
             title="Margem de Lucro"
-            value={`${estatisticas.financeiro.margem}%`}
-            subtitle={`R$ ${estatisticas.financeiro.lucro.toLocaleString()}`}
+            value={`${dadosRelatorio.estatisticas.financeiro.margem}%`}
+            subtitle={`R$ ${dadosRelatorio.estatisticas.financeiro.lucro.toLocaleString()}`}
             icon={Target}
             color="bg-orange-500"
             variation={5.7}
@@ -449,7 +737,7 @@ const Relatorios = () => {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Gráfico de Vendas */}
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <Card className="shadow-2xl border dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-gray-800">
                     <LineChart className="w-5 h-5" />
@@ -459,7 +747,7 @@ const Relatorios = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="h-64 flex items-end justify-between gap-2 p-4">
-                    {dadosGrafico.vendas.map((item, index) => (
+                    {dadosRelatorio.dadosGrafico?.vendas?.map((item, index) => (
                       <div key={index} className="flex flex-col items-center gap-2 flex-1">
                         <div className="text-xs font-medium text-gray-600">
                           R$ {(item.valor / 1000).toFixed(0)}k
@@ -467,19 +755,19 @@ const Relatorios = () => {
                         <div 
                           className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-md transition-all duration-300 hover:from-blue-600 hover:to-blue-500"
                           style={{ 
-                            height: `${(item.valor / Math.max(...dadosGrafico.vendas.map(v => v.valor))) * 200}px`,
+                            height: `${(item.valor / Math.max(...(dadosRelatorio.dadosGrafico?.vendas?.map(v => v.valor) || [1]))) * 200}px`,
                             minHeight: '20px'
                           }}
                         />
                         <div className="text-xs text-gray-500">{item.mes}</div>
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Status das Entregas */}
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <Card className="shadow-2xl border dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-gray-800">
                     <PieChart className="w-5 h-5" />
@@ -489,7 +777,7 @@ const Relatorios = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {dadosGrafico.entregas.map((item, index) => (
+                    {dadosRelatorio.dadosGrafico?.entregas?.map((item, index) => (
                       <div key={index} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -506,7 +794,7 @@ const Relatorios = () => {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                 </CardContent>
               </Card>
@@ -553,6 +841,37 @@ const Relatorios = () => {
                 </CardContent>
               </Card>
             </div>
+            {/* Resumos WhatsApp */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800">
+                  <FileText className="w-5 h-5" />
+                  Resumos WhatsApp
+                </CardTitle>
+                <CardDescription>
+                  Gere resumos rápidos e compartilhe pelo WhatsApp
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  <Button onClick={gerarResumoGeralDiario} className="bg-blue-600 text-white hover:bg-blue-700">
+                    📝 Resumo Geral Diário
+                  </Button>
+                  <Button onClick={() => {
+                    const nome = prompt('Digite o nome do fretista');
+                    if (nome) gerarResumoPorFretista(nome);
+                  }} className="bg-green-600 text-white hover:bg-green-700">
+                    🚛 Resumo por Fretista
+                  </Button>
+                  <Button onClick={() => {
+                    const nome = prompt('Digite o nome do cliente');
+                    if (nome) gerarResumoPorCliente(nome);
+                  }} className="bg-purple-600 text-white hover:bg-purple-700">
+                    🏢 Resumo por Cliente
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Relatório de Vendas */}
@@ -566,7 +885,7 @@ const Relatorios = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
                     <div className="h-80 flex items-end justify-between gap-3 p-4 bg-gray-50 rounded-lg">
-                      {dadosGrafico.vendas.map((item, index) => (
+                      {dadosRelatorio.dadosGrafico?.vendas?.map((item, index) => (
                         <div key={index} className="flex flex-col items-center gap-2 flex-1">
                           <div className="text-xs font-medium text-gray-600">
                             {item.pedidos}
@@ -574,14 +893,14 @@ const Relatorios = () => {
                           <div 
                             className="w-full bg-gradient-to-t from-purple-500 to-purple-400 rounded-t-md transition-all duration-300 hover:from-purple-600 hover:to-purple-500 cursor-pointer"
                             style={{ 
-                              height: `${(item.pedidos / Math.max(...dadosGrafico.vendas.map(v => v.pedidos))) * 250}px`,
+                              height: `${(item.pedidos / Math.max(...(dadosRelatorio.dadosGrafico?.vendas?.map(v => v.pedidos) || [1]))) * 250}px`,
                               minHeight: '30px'
                             }}
                             title={`${item.mes}: ${item.pedidos} pedidos - R$ ${item.valor.toLocaleString()}`}
                           />
                           <div className="text-xs text-gray-500">{item.mes}</div>
                         </div>
-                      ))}
+                      )) || []}
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -645,7 +964,7 @@ const Relatorios = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {dadosGrafico.entregas.map((item, index) => (
+                    {dadosRelatorio.dadosGrafico?.entregas?.map((item, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -669,7 +988,7 @@ const Relatorios = () => {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                 </CardContent>
               </Card>
@@ -738,7 +1057,7 @@ const Relatorios = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {topFretistas.map((fretista, index) => (
+                  {dadosRelatorio.topFretistas?.map((fretista, index) => (
                     <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
@@ -763,7 +1082,7 @@ const Relatorios = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) || []}
                 </div>
               </CardContent>
             </Card>
@@ -778,7 +1097,7 @@ const Relatorios = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {regioes.map((regiao, index) => (
+                  {dadosRelatorio.topRegioes?.map((regiao, index) => (
                     <div key={index} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -801,11 +1120,11 @@ const Relatorios = () => {
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
                           className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${(regiao.entregas / Math.max(...regioes.map(r => r.entregas))) * 100}%` }}
+                          style={{ width: `${(regiao.entregas / Math.max(...(dadosRelatorio.topRegioes?.map(r => r.entregas) || [1]))) * 100}%` }}
                         />
                       </div>
                     </div>
-                  ))}
+                  )) || []}
                 </div>
               </CardContent>
             </Card>

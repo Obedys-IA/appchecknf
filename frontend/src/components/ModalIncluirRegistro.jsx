@@ -50,6 +50,7 @@ const ModalIncluirRegistro = ({ isOpen, onClose, onSave }) => {
     // Status e controle
     status: 'PENDENTE',
     situacao: 'ATIVO',
+    pefin: '',
     observacoes: ''
   })
 
@@ -84,12 +85,13 @@ const ModalIncluirRegistro = ({ isOpen, onClose, onSave }) => {
         cnpj_emitente: '',
         razao_social_emitente: '',
         nome_fantasia_emitente: '',
-        status: 'PENDENTE',
-        situacao: 'ATIVO',
-        observacoes: ''
-      })
-      setErrors({})
-    }
+      status: 'PENDENTE',
+      situacao: 'ATIVO',
+      pefin: '',
+      observacoes: ''
+    })
+    setErrors({})
+  }
   }, [isOpen])
 
   const handleInputChange = (field, value) => {
@@ -452,7 +454,7 @@ const ModalIncluirRegistro = ({ isOpen, onClose, onSave }) => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="natureza_operacao">Natureza da Operação</Label>
                     <Input
@@ -474,6 +476,16 @@ const ModalIncluirRegistro = ({ isOpen, onClose, onSave }) => {
                         <SelectItem value="CANCELADO">Cancelado</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pefin">PeFin</Label>
+                    <Input
+                      id="pefin"
+                      placeholder="Ex.: Em dia, Vence em 5d, Vencido"
+                      value={formData.pefin}
+                      onChange={(e) => handleInputChange('pefin', e.target.value)}
+                    />
                   </div>
                 </div>
               </div>

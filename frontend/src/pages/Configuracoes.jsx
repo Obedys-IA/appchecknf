@@ -2,12 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Settings, Database, Mail, FileText, Users, Save, Upload } from 'lucide-react';
+import { Settings, Database, Mail, FileText, Save, Upload } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getSystemStats, createBackup, exportEmitentesToSupabase, exportClientesToSupabase } from '../lib/supabase';
+import PageHeader from '../components/PageHeader.jsx';
 
 const Configuracoes = () => {
   const { userData } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [systemStats, setSystemStats] = useState({
+    totalUsers: 0,
+    storageUsed: 0,
+    storageLimit: 0
+  });
   const [configuracoes, setConfiguracoes] = useState({
     // Configurações gerais
     nomeEmpresa: 'Minha Empresa Ltda',
@@ -29,6 +36,19 @@ const Configuracoes = () => {
     frequenciaBackup: 'diario',
     manterBackups: 30
   });
+
+  useEffect(() => {
+    const loadSystemStats = async () => {
+      try {
+        const stats = await getSystemStats();
+        setSystemStats(stats);
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas do sistema:', error);
+      }
+    };
+
+    loadSystemStats();
+  }, []);
 
   const handleConfigChange = (campo, valor) => {
     setConfiguracoes(prev => ({
@@ -96,12 +116,20 @@ const Configuracoes = () => {
   const exportarDados = async () => {
     setLoading(true);
     try {
-      // Simular exportação
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Dados exportados com sucesso!');
+      const result = await exportEmitentesToSupabase();
+      if (result.success) {
+        const clientesResult = await exportClientesToSupabase();
+        if (clientesResult.success) {
+          alert(`Dados exportados com sucesso! Emitentes: ${result.count}, Clientes: ${clientesResult.count}`);
+        } else {
+          throw new Error(clientesResult.error || 'Erro ao exportar clientes');
+        }
+      } else {
+        throw new Error(result.error || 'Erro ao exportar emitentes');
+      }
     } catch (error) {
       console.error('Erro ao exportar dados:', error);
-      alert('Erro ao exportar dados');
+      alert('Erro ao exportar dados: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -125,9 +153,31 @@ const Configuracoes = () => {
     }
   };
 
-  // Verificar permissões
-  const isAdmin = userData?.tipo === 'administrador';
-  const isGerencia = userData?.tipo === 'gerencia';
+  const realizarBackup = async () => {
+    if (!window.confirm('Deseja criar um backup manual dos dados do sistema?')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await createBackup();
+      if (result.success) {
+        alert(`Backup criado com sucesso! Arquivo: ${result.filename}`);
+      } else {
+        throw new Error(result.error || 'Erro desconhecido');
+      }
+    } catch (error) {
+      console.error('Erro ao criar backup:', error);
+      alert('Erro ao criar backup: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verificar permissões (normalizar tipo para minúsculas)
+  const tipo = (userData?.tipo || '').toLowerCase();
+  const isAdmin = tipo === 'administrador';
+  const isGerencia = tipo === 'gerencia';
   const canManageSystem = isAdmin || isGerencia;
 
   if (!canManageSystem) {
@@ -143,17 +193,22 @@ const Configuracoes = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Configurações do Sistema</h1>
-        <Button onClick={salvarConfiguracoes} disabled={loading}>
+    <div className="dashboard-container max-w-[1400px] mx-auto py-6 space-y-6">
+      <PageHeader
+        title="Configurações do Sistema"
+        subtitle="Ajuste preferências, processamento e integrações"
+        icon={<Settings className="w-6 h-6 text-green-600" />}
+        className="bg-white/80 backdrop-blur-sm"
+      />
+      <div className="flex justify-end">
+        <Button onClick={salvarConfiguracoes} disabled={loading} className="btn btn-green">
           <Save className="w-4 h-4 mr-2" />
           {loading ? 'Salvando...' : 'Salvar Configurações'}
         </Button>
       </div>
 
       {/* Configurações Gerais */}
-      <Card>
+      <Card className="card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
@@ -163,7 +218,7 @@ const Configuracoes = () => {
             Configurações básicas da empresa e sistema
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Nome da Empresa</label>
@@ -195,7 +250,7 @@ const Configuracoes = () => {
       </Card>
 
       {/* Configurações de Processamento */}
-      <Card>
+      <Card className="card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
@@ -205,7 +260,7 @@ const Configuracoes = () => {
             Configure como os PDFs são processados e exportados
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Formato de Exportação Padrão</label>
@@ -252,7 +307,7 @@ const Configuracoes = () => {
       </Card>
 
       {/* Configurações de Notificação */}
-      <Card>
+      <Card className="card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="w-5 h-5" />
@@ -262,7 +317,7 @@ const Configuracoes = () => {
             Configure quando e como receber notificações
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="p-6 space-y-3">
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -306,7 +361,7 @@ const Configuracoes = () => {
 
       {/* Gerenciamento de Dados */}
       {isAdmin && (
-        <Card>
+        <Card className="card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="w-5 h-5" />
@@ -316,7 +371,7 @@ const Configuracoes = () => {
               Importe e exporte dados do sistema
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Importar Emitentes</label>
@@ -425,6 +480,17 @@ const Configuracoes = () => {
                 </div>
               </div>
             )}
+
+            <div className="mt-4">
+              <Button
+                onClick={realizarBackup}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Database className="w-4 h-4 mr-2" />
+                Criar Backup Manual
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -446,11 +512,13 @@ const Configuracoes = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Espaço em Disco Usado</label>
-              <p className="mt-1 text-gray-600">2.5 GB / 10 GB</p>
+              <p className="mt-1 text-gray-600">
+                {(systemStats.storageUsed / (1024 * 1024)).toFixed(2)} MB / {(systemStats.storageLimit / (1024 * 1024 * 1024)).toFixed(1)} GB
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Usuários Ativos</label>
-              <p className="mt-1 text-gray-600">15 usuários</p>
+              <p className="mt-1 text-gray-600">{systemStats.totalUsers} usuários</p>
             </div>
           </div>
         </CardContent>

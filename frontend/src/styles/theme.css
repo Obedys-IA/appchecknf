@@ -1,0 +1,66 @@
+:root {
+  --bg: #ffffff
+
+;
+  --card: #ffffff
+
+;
+  --button: #FF3D00;
+  --text: #000000;
+
+  /* Map to common tokens used by components */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card-foreground: var(--text);
+  --primary: var(--button);
+  --primary-foreground: var(--text);
+  --border-color: #757575
+;
+}
+
+.dark-theme {
+  --bg: #0D0D0D;
+  --card: #161616;
+  --button: #00C853;
+  --text: #FFFFFF;
+  --box-shadow: 0 2px 4px rgba(39, 39, 39, 0.1);
+
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card-foreground: var(--text);
+  --primary: var(--button);
+  --primary-foreground: var(--text);
+  --border-color: rgba(255,255,255,0.2);
+}
+
+/* Global application */
+html, body, #root { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Map utility classes used across shadcn/tailwind to our variables */
+.bg-background { background-color: var(--bg) !important; }
+.text-foreground { color: var(--text) !important; }
+.bg-card { background-color: var(--card) !important; }
+.text-card-foreground { color: var(--text) !important; }
+.bg-primary { background-color: var(--button) !important; }
+.text-primary-foreground { color: var(--text) !important; }
+.border { border-color: var(--border-color) !important; }
+.border-input { border-color: var(--border-color) !important; }
+
+/* Inputs and selects */
+input, select, textarea {
+  background-color: var(--bg);
+  color: var(--text);
+  border-color: var(--border-color);
+}
+
+/* Tables */
+table { color: var(--text); }
+thead { background-color: rgba(0,0,0,0.04); }
+.dark-theme thead { background-color: rgba(255,255,255,0.06); }
+
+/* Badges fallback */
+.badge-default { background-color: var(--button); color: var(--text); }

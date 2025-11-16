@@ -33,12 +33,19 @@ import {
   CheckCircle,
   XCircle,
   UserPlus
-} from 'lucide-react';
+ } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { useAuth } from '../contexts/AuthContext';
+import { getSystemStats, getAllUsers, updateUser, deleteUser } from '../lib/supabase';
 
 const Usuarios = () => {
   const { user } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
+  const [systemStats, setSystemStats] = useState({
+    totalUsers: 0,
+    storageUsed: 0,
+    storageLimit: 0
+  });
   const [filtros, setFiltros] = useState({
     busca: '',
     tipo: '',
@@ -54,22 +61,34 @@ const Usuarios = () => {
   // Carregar usuários reais do Supabase
   useEffect(() => {
     const loadUsuarios = async () => {
+      setLoading(true);
       try {
-        const response = await fetch('http://localhost:3001/api/usuarios')
-        if (response.ok) {
-          const data = await response.json()
-          setUsuarios(data)
+        const { data, error } = await getAllUsers();
+        if (error) {
+          console.error('Erro ao carregar usuários:', error);
+          setUsuarios([]);
         } else {
-          console.error('Erro ao carregar usuários da API')
-          setUsuarios([])
+          setUsuarios(data);
         }
       } catch (error) {
-        console.error('Erro ao carregar usuários:', error)
-        setUsuarios([])
+        console.error('Erro ao carregar usuários:', error);
+        setUsuarios([]);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    const loadSystemStats = async () => {
+      try {
+        const stats = await getSystemStats();
+        setSystemStats(stats);
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas do sistema:', error);
+      }
+    };
     
-    loadUsuarios()
+    loadUsuarios();
+    loadSystemStats();
   }, []);
 
   const tiposUsuario = [
@@ -111,13 +130,23 @@ const Usuarios = () => {
   const aprovarUsuario = async (userId) => {
     setLoading(true);
     try {
-      // Simular aprovação
-      setUsuarios(prev => prev.map(u => 
-        u.id === userId 
-          ? { ...u, status: 'ativo', tipo: 'colaborador' }
-          : u
-      ));
-      alert('Usuário aprovado com sucesso!');
+      const { data, error } = await updateUser(userId, { 
+        status: 'ativo', 
+        tipo: 'colaborador' 
+      });
+      
+      if (error) {
+        console.error('Erro ao aprovar usuário:', error);
+        alert('Erro ao aprovar usuário');
+      } else {
+        // Atualizar o estado local
+        setUsuarios(prev => prev.map(u => 
+          u.id === userId 
+            ? { ...u, status: 'ativo', tipo: 'colaborador' }
+            : u
+        ));
+        alert('Usuário aprovado com sucesso!');
+      }
     } catch (error) {
       console.error('Erro ao aprovar usuário:', error);
       alert('Erro ao aprovar usuário');
@@ -131,9 +160,16 @@ const Usuarios = () => {
     
     setLoading(true);
     try {
-      // Simular rejeição
-      setUsuarios(prev => prev.filter(u => u.id !== userId));
-      alert('Usuário rejeitado e removido do sistema');
+      const { success, error } = await deleteUser(userId);
+      
+      if (error) {
+        console.error('Erro ao rejeitar usuário:', error);
+        alert('Erro ao rejeitar usuário');
+      } else {
+        // Remover do estado local
+        setUsuarios(prev => prev.filter(u => u.id !== userId));
+        alert('Usuário rejeitado e removido do sistema');
+      }
     } catch (error) {
       console.error('Erro ao rejeitar usuário:', error);
       alert('Erro ao rejeitar usuário');
@@ -149,11 +185,26 @@ const Usuarios = () => {
   const salvarEdicao = async () => {
     setLoading(true);
     try {
-      setUsuarios(prev => prev.map(u => 
-        u.id === editingUser.id ? editingUser : u
-      ));
-      setEditingUser(null);
-      alert('Usuário atualizado com sucesso!');
+      const { data, error } = await updateUser(editingUser.id, {
+        nome: editingUser.nome,
+        email: editingUser.email,
+        telefone: editingUser.telefone,
+        empresa: editingUser.empresa,
+        tipo: editingUser.tipo,
+        status: editingUser.status
+      });
+      
+      if (error) {
+        console.error('Erro ao salvar usuário:', error);
+        alert('Erro ao salvar usuário');
+      } else {
+        // Atualizar o estado local
+        setUsuarios(prev => prev.map(u => 
+          u.id === editingUser.id ? { ...editingUser, ...data } : u
+        ));
+        setEditingUser(null);
+        alert('Usuário atualizado com sucesso!');
+      }
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
       alert('Erro ao salvar usuário');
@@ -237,16 +288,16 @@ const Usuarios = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+  <div className="dashboard-container max-w-[1400px] mx-auto py-6 space-y-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Gestão de Usuários
-            </h1>
-            <p className="text-gray-600 mt-2">Gerencie usuários, permissões e acessos do sistema</p>
-          </div>
+        <PageHeader
+          title="Gestão de Usuários"
+          subtitle="Gerencie usuários, permissões e acessos do sistema"
+          icon={<Users className="w-6 h-6" />}
+          className="bg-white/90"
+        />
+        <div className="flex justify-end">
           <Button 
             onClick={() => setShowNewUserForm(true)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
@@ -263,7 +314,7 @@ const Usuarios = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm font-medium">Total de Usuários</p>
-                  <p className="text-3xl font-bold">{usuarios.length}</p>
+                  <p className="text-3xl font-bold">{systemStats.totalUsers}</p>
                 </div>
                 <div className="bg-white/20 p-3 rounded-full">
                   <Users className="w-8 h-8" />
@@ -322,7 +373,7 @@ const Usuarios = () => {
         </div>
 
         {/* Filtros e Controles */}
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+        <Card className="card">
           <CardHeader className="pb-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
@@ -392,7 +443,7 @@ const Usuarios = () => {
         </Card>
 
         {/* Lista de Usuários */}
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+        <Card className="card">
           <CardHeader>
             <CardTitle className="text-gray-800">
               Usuários ({usuariosFiltrados.length})
@@ -401,7 +452,7 @@ const Usuarios = () => {
           <CardContent>
             {viewMode === 'table' ? (
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                <table className="tabela-registros w-full border-collapse">
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th 
@@ -509,7 +560,7 @@ const Usuarios = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {usuariosFiltrados.map((usuario) => (
-                  <Card key={usuario.id} className="hover:shadow-lg transition-all duration-200 border-gray-200">
+                  <Card key={usuario.id} className="card hover:shadow-lg transition-all duration-200 border-gray-200">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">

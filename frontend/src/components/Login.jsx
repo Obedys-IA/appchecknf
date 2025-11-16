@@ -45,7 +45,13 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Erro no login:', error)
-      setError('Erro interno do servidor. Tente novamente.')
+      const isNetworkError =
+        (typeof error?.message === 'string' && error.message.includes('Failed to fetch')) ||
+        error?.name === 'TypeError'
+      const message = isNetworkError
+        ? 'Não foi possível conectar ao Supabase (possível problema de DNS/Internet). Verifique sua conexão, proxy/VPN e tente novamente.'
+        : 'Erro interno do servidor. Tente novamente.'
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -88,33 +94,44 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-4">
-      <div className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url('/backgroundlogin.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay translúcido */}
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+      
+      <div className="w-full max-w-md relative z-10">
         {/* Header com Logo */}
         <div className="text-center mb-8">
           <div className="relative inline-block">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full blur-lg opacity-30 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full blur-lg opacity-50 animate-pulse"></div>
             <img 
               src="/logocanhotos.png" 
               alt="CHECKNF - GDM" 
-              className="relative h-20 w-20 mx-auto mb-4 rounded-full shadow-lg"
+              className="relative h-20 w-20 mx-auto mb-4 rounded-full shadow-2xl border-4 border-white/20"
             />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent drop-shadow-lg">
             CHECKNF
           </h1>
-          <Badge variant="secondary" className="mt-2 bg-green-100 text-green-800 hover:bg-green-200">
+          <Badge variant="secondary" className="mt-2 bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm">
             Sistema de Gestão de Notas Fiscais
           </Badge>
         </div>
 
-        {/* Card Principal */}
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+        {/* Card Principal - Mais translúcido */}
+        <Card className="shadow-2xl border-0 bg-white/10 backdrop-blur-md border border-white/20">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center text-gray-800">
+            <CardTitle className="text-2xl font-bold text-center text-white drop-shadow-lg">
               {showForgotPassword ? 'Recuperar Senha' : 'Fazer Login'}
             </CardTitle>
-            <CardDescription className="text-center text-gray-600">
+            <CardDescription className="text-center text-white/80">
               {showForgotPassword 
                 ? 'Digite seu email para receber as instruções de recuperação'
                 : 'Entre com suas credenciais para acessar o sistema'
@@ -127,7 +144,7 @@ const Login = () => {
               <form onSubmit={handleLogin} className="space-y-4">
                 {/* Campo Email */}
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <label htmlFor="email" className="text-sm font-medium text-white/90 flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     Email
                   </label>
@@ -137,14 +154,14 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="seu@email.com"
-                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-500"
+                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-400 bg-white/20 border-white/30 text-white placeholder:text-white/60 backdrop-blur-sm"
                     required
                   />
                 </div>
 
                 {/* Campo Senha */}
                 <div className="space-y-2">
-                  <label htmlFor="password" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <label htmlFor="password" className="text-sm font-medium text-white/90 flex items-center gap-2">
                     <Lock className="w-4 h-4" />
                     Senha
                   </label>
@@ -155,13 +172,13 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Sua senha"
-                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-green-500"
+                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-green-400 bg-white/20 border-white/30 text-white placeholder:text-white/60 backdrop-blur-sm"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-orange-500 hover:bg-orange-600 text-white font-bold p-1 rounded transition-colors"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -170,9 +187,9 @@ const Login = () => {
 
                 {/* Mensagem de Erro */}
                 {error && (
-                  <Alert variant="destructive" className="border-red-200 bg-red-50">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="text-red-800">
+                  <Alert variant="destructive" className="border-red-300/50 bg-red-500/20 backdrop-blur-sm">
+                    <AlertCircle className="h-4 w-4 text-red-300" />
+                    <AlertDescription className="text-red-100">
                       {error}
                     </AlertDescription>
                   </Alert>
@@ -181,7 +198,7 @@ const Login = () => {
                 {/* Botão de Login */}
                 <Button 
                   type="submit" 
-                  className="w-full h-11 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl" 
+                  className="w-full h-11 bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all duration-200 shadow-lg hover:shadow-xl" 
                   disabled={loading}
                 >
                   {loading ? (
@@ -199,7 +216,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(true)}
-                    className="text-sm text-green-600 hover:text-green-800 underline transition-colors"
+                    className="text-sm text-green-200 hover:text-white underline transition-colors"
                   >
                     Esqueceu sua senha?
                   </button>
@@ -209,7 +226,7 @@ const Login = () => {
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 {/* Campo Email para Reset */}
                 <div className="space-y-2">
-                  <label htmlFor="resetEmail" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <label htmlFor="resetEmail" className="text-sm font-medium text-white/90 flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     Email para recuperação
                   </label>
@@ -219,16 +236,16 @@ const Login = () => {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="seu@email.com"
-                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-500"
+                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-green-400 bg-white/20 border-white/30 text-white placeholder:text-white/60 backdrop-blur-sm"
                     required
                   />
                 </div>
 
                 {/* Mensagem de Erro */}
                 {error && (
-                  <Alert variant="destructive" className="border-red-200 bg-red-50">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="text-red-800">
+                  <Alert variant="destructive" className="border-red-300/50 bg-red-500/20 backdrop-blur-sm">
+                    <AlertCircle className="h-4 w-4 text-red-300" />
+                    <AlertDescription className="text-red-100">
                       {error}
                     </AlertDescription>
                   </Alert>
@@ -236,18 +253,18 @@ const Login = () => {
 
                 {/* Mensagem de Sucesso */}
                 {resetMessage && (
-                  <Alert className="border-green-200 bg-green-50">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">
+                  <Alert className="border-green-300/50 bg-green-500/20 backdrop-blur-sm">
+                    <CheckCircle className="h-4 w-4 text-green-300" />
+                    <AlertDescription className="text-green-100">
                       {resetMessage}
                     </AlertDescription>
                   </Alert>
                 )}
 
                 {/* Botão Enviar */}
-                <Button 
-                  type="submit" 
-                  className="w-full h-11 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl" 
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all duration-200 shadow-lg hover:shadow-xl" 
                   disabled={resetLoading}
                 >
                   {resetLoading ? (
@@ -270,7 +287,7 @@ const Login = () => {
                     setResetMessage('')
                     setError('')
                   }}
-                  className="w-full h-11 border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                  className="w-full h-11 border-white/30 bg-white/10 text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Voltar ao login
@@ -278,15 +295,15 @@ const Login = () => {
               </form>
             )}
 
-            <Separator className="my-6" />
+            <Separator className="my-6 bg-white/30" />
 
             {/* Link para Registro */}
             <div className="text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white/80">
                 Não tem uma conta?{' '}
                 <button
                   onClick={() => navigate('/register')}
-                  className="text-green-600 hover:text-green-800 font-medium underline transition-colors"
+                  className="text-green-200 hover:text-white font-medium underline transition-colors"
                 >
                   Registre-se aqui
                 </button>
@@ -294,53 +311,6 @@ const Login = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Informações dos Tipos de Usuário */}
-        <Card className="mt-6 bg-white/60 backdrop-blur-sm border-gray-200">
-          <CardContent className="pt-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">Tipos de Usuário</h3>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="space-y-2">
-                <Badge variant="outline" className="w-full justify-center bg-blue-50 text-blue-700 border-blue-200">
-                  Administrador
-                </Badge>
-                <p className="text-gray-600 text-center">Acesso completo</p>
-              </div>
-              <div className="space-y-2">
-                <Badge variant="outline" className="w-full justify-center bg-green-50 text-green-700 border-green-200">
-                  Colaborador
-                </Badge>
-                <p className="text-gray-600 text-center">Registros e relatórios</p>
-              </div>
-              <div className="space-y-2">
-                <Badge variant="outline" className="w-full justify-center bg-orange-50 text-orange-700 border-orange-200">
-                  Fretista
-                </Badge>
-                <p className="text-gray-600 text-center">Próprio perfil</p>
-              </div>
-              <div className="space-y-2">
-                <Badge variant="outline" className="w-full justify-center bg-purple-50 text-purple-700 border-purple-200">
-                  Gerência
-                </Badge>
-                <p className="text-gray-600 text-center">Dashboards</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Botão Admin (apenas para desenvolvimento) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 text-center">
-            <Button
-              onClick={handleCreateAdmin}
-              variant="outline"
-              size="sm"
-              className="text-xs text-gray-500 hover:text-gray-700"
-            >
-              Criar Admin (Dev)
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   )

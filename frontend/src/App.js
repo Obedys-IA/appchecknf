@@ -14,11 +14,14 @@ import Perfil from './pages/Perfil';
 import Configuracoes from './pages/Configuracoes';
 import Unauthorized from './pages/Unauthorized';
 import './App.css';
+import './styles/theme.css';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <ThemeProvider>
         <Routes>
           {/* Rotas públicas */}
           <Route path="/login" element={<Login />} />
@@ -93,6 +96,7 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   );
