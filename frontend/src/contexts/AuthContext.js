@@ -125,7 +125,9 @@ export const AuthProvider = ({ children }) => {
         if (!isMounted) return
         
         if (currentUser) {
-          await processAuthenticatedUser(currentUser)
+          // Processar dados adicionais do usuário em segundo plano
+          // para não bloquear a liberação do estado de carregamento.
+          processAuthenticatedUser(currentUser)
         } else {
           console.log('AuthContext: Nenhum usuário autenticado')
           setUser(null)
@@ -156,7 +158,8 @@ export const AuthProvider = ({ children }) => {
         
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('AuthContext: Usuário fez login, processando...')
-          await processAuthenticatedUser(session.user)
+          // Não aguardar para não bloquear a UI
+          processAuthenticatedUser(session.user)
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthContext: Usuário fez logout')
           setUser(null)
