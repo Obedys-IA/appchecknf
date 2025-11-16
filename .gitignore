@@ -94,6 +94,10 @@ dist
 .cache/
 public
 
+# Unignore CRA public folder for frontend
+!frontend/public/
+!frontend/public/**
+
 # Storybook build outputs
 .out
 .storybook-out
