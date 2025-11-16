@@ -3,6 +3,7 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Upload, FileText, Download, Package } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
+import { API_URL } from '../config/api'
 
 const ProcessarPDFs = () => {
   const [selectedFiles, setSelectedFiles] = useState([])
@@ -11,7 +12,6 @@ const ProcessarPDFs = () => {
   const [statusMessage, setStatusMessage] = useState('')
   const [isDragging, setIsDragging] = useState(false)
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001'
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files || [])

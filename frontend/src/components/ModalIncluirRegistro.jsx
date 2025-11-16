@@ -6,6 +6,8 @@ import { Label } from './ui/label'
 import { Textarea } from './ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { X, Save, Calculator } from 'lucide-react'
+import { API_URL } from '../config/api'
+
 
 const ModalIncluirRegistro = ({ isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -113,7 +115,7 @@ const ModalIncluirRegistro = ({ isOpen, onClose, onSave }) => {
   const buscarFretista = async (placa) => {
     if (placa && placa.length >= 7) {
       try {
-        const response = await fetch(`http://localhost:3001/fretista/${placa}`)
+        const response = await fetch(`${API_URL}/fretista/${placa}`)
         if (response.ok) {
           const data = await response.json()
           handleInputChange('fretista', data.fretista)
@@ -189,7 +191,7 @@ const ModalIncluirRegistro = ({ isOpen, onClose, onSave }) => {
         updated_at: new Date().toISOString()
       }
       
-      const response = await fetch('http://localhost:3001/registrar-nota', {
+      const response = await fetch(`${API_URL}/registrar-nota`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -32,6 +32,7 @@ import { Badge } from '../components/ui/badge'
 import { Bar, Doughnut } from 'react-chartjs-2'
 import { useTheme } from '../context/ThemeContext'
 import PageHeader from '../components/PageHeader.jsx'
+import { API_URL } from '../config/api'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -53,7 +54,6 @@ ChartJS.register(
   ArcElement
 )
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001'
 
 const Dashboard = () => {
   const { theme } = useTheme()

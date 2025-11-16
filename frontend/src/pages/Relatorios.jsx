@@ -30,6 +30,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import PageHeader from '../components/PageHeader.jsx';
 import { getRelatoriosStatistics, getFilterOptions, getRegistrosWithFilters } from '../lib/supabase';
+import { API_URL } from '../config/api'
 
 // Componente StatCard
 const StatCard = ({ title, value, subtitle, icon: Icon, color, variation, trend }) => {
@@ -223,7 +224,6 @@ const Relatorios = () => {
   const gerarRelatorio = async () => {
     setLoading(true);
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       const response = await fetch(`${API_URL}/api/relatorios/gerar`, {
         method: 'POST',
         headers: {
@@ -258,7 +258,6 @@ const Relatorios = () => {
 
   const exportarRelatorio = async (formato) => {
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       const response = await fetch(`${API_URL}/api/relatorios/exportar`, {
         method: 'POST',
         headers: {

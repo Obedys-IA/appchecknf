@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || ''
+import { API_URL } from '../config/api'
 
 export async function addRowToSheet(data) {
   try {

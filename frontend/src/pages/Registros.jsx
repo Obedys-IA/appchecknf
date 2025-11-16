@@ -42,6 +42,7 @@ import {
   Grid3X3
 } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
+import { API_URL } from '../config/api'
 
 const Registros = () => {
   const [registros, setRegistros] = useState([])
@@ -114,7 +115,6 @@ const Registros = () => {
     pefin: ''
   })
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001'
 
   useEffect(() => {
     loadRegistros()

@@ -6,10 +6,10 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Textarea } from './ui/textarea'
 import { X, Save } from 'lucide-react'
 import { updateRowInSheet } from '../services/googleSheets'
+import { API_URL } from '../config/api'
 
 const ModalEditarRegistro = ({ isOpen, onClose, registro, onSave }) => {
   const [formData, setFormData] = useState({})
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001'
 
   useEffect(() => {
     if (isOpen && registro) {
