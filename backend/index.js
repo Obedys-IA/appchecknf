@@ -14,15 +14,22 @@ const https = require('https')
 const { google } = require('googleapis')
 
 // Configuração do Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'https://nwkqdbonogfitjhkjjgh.supabase.co'
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a3FkYm9ub2dmaXRqaGtqamdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDM3OTA2MSwiZXhwIjoyMDc1OTU1MDYxfQ.fhRoAqj9XxI7c0HAzPYjs2t7FCIWVL3LBd2RaYh6Elc'
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Variáveis de ambiente do Supabase ausentes: SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY')
+  process.exit(1)
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middlewares
-app.use(cors());
+// CORS básico será substituído mais abaixo por configuração robusta
+// app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Utilitário: adicionar linha ao Google Sheets
@@ -459,25 +466,39 @@ app.get('/admin/status-cache', (req, res) => {
   });
 });
 
-// Configuração CORS mais robusta para web
-const allowedOrigins = [
-  'http://localhost:3000', 
+// Configuração CORS mais robusta para web e produção (inclui Vercel)
+const envAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
   'http://localhost:3001',
   'http://192.168.10.199:3000',
   'http://192.168.1.68:3000'
-];
+]
+
+const allowedOrigins = [...defaultAllowedOrigins, ...envAllowedOrigins]
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true
+  if (allowedOrigins.includes(origin)) return true
+  // Permitir qualquer subdomínio Vercel
+  if (/^https?:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/i.test(origin)) return true
+  return false
+}
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permite requisições sem 'origin' (ex: Postman, apps mobile) ou da lista de permissões
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
+    if (isAllowedOrigin(origin)) {
+      callback(null, true)
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS'))
     }
   },
   credentials: true
-}));
+}))
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));

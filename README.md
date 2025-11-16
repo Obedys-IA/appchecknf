@@ -26,6 +26,18 @@ Aplicativo web para separação e processamento automático de notas fiscais em 
 - React.js
 - CSS3 com design responsivo
 
+## Segurança e Credenciais
+
+Para integrar com o Google Sheets, o backend utiliza variáveis de ambiente. Nunca faça commit de chaves privadas ou arquivos de credenciais no repositório.
+
+- Use o arquivo `backend/.env.example` como referência e crie um arquivo `backend/.env` localmente com:
+  - `GOOGLE_SHEETS_ID`: ID da planilha (da URL do Google Sheets)
+  - `GOOGLE_SERVICE_ACCOUNT_EMAIL`: e-mail da conta de serviço
+  - `GOOGLE_PRIVATE_KEY`: chave privada da conta de serviço (substitua quebras de linha por `\n` quando necessário)
+  - `GOOGLE_SHEETS_RANGE` (opcional): ex. `Registros!A:Z`
+
+O frontend comunica-se com o backend pelos endpoints `/add-row` e `/update-row`; configure `REACT_APP_API_URL` em `frontend/.env` se for usar uma URL pública.
+
 ## Estrutura do Projeto
 
 ```
@@ -55,17 +67,28 @@ note separator/
    ```
 
 2. **Frontend**:
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
+  ```bash
+  cd frontend
+  npm install
+  npm start
+  ```
 
 3. Acesse `http://localhost:3000`
+
+### Configuração do Google Sheets
+
+1. No Google Cloud, crie uma Conta de Serviço com permissão para Google Sheets API e gere uma chave.
+2. Compartilhe a planilha com o e-mail da conta de serviço (como Editor).
+3. Preencha o `backend/.env` usando o modelo `backend/.env.example`.
+4. Reinicie o backend.
+
+> Importante: Evite armazenar arquivos `.json` de credenciais no projeto. O `.gitignore` já bloqueia padrões como `app-sheets-service-*.json` e `*service-account*.json`.
 
 ### Deploy na Web
 
 O aplicativo está configurado para deploy em plataformas como Render, Vercel, etc.
+
+Para um passo a passo detalhado de publicação do backend no Render e do frontend na Vercel, incluindo variáveis de ambiente e validações pós-deploy, consulte o arquivo `DEPLOY.md` na raiz do projeto.
 
 ## Padrão de Nomeação
 
@@ -87,4 +110,4 @@ Exemplo: `NF 53669 - SUPERMERCADO NUNES - 13.05.2025 - JOP0D95 - EDERSON - MERCA
 
 ## Autor
 
-GDM - SeparadorPDF 
+GDM - SeparadorPDF

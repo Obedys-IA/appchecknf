@@ -21,6 +21,12 @@ lerna-debug.log*
 .env.production.local
 /frontend/.env
 
+# Credenciais e variáveis sensíveis
+# Nunca faça commit destes arquivos
+/backend/.env
+app-sheets-service-*.json
+*service-account*.json
+
 # Arquivos de upload e dados processados
 /backend/uploads/
 /backend/last_processed_data.json
