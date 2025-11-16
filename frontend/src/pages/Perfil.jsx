@@ -98,10 +98,10 @@ const Perfil = () => {
       // Atualizar o contexto de autenticação com os novos dados
       const updatedUserData = { ...userData, ...formData };
       
-      // Se estamos atualizando o próprio usuário logado, atualizar o contexto
-      if (userData.id === user?.id) {
-        // Aqui você pode implementar uma função no AuthContext para atualizar os dados do usuário
-        // Por enquanto, vamos simular a atualização
+      // Atualizar o contexto de autenticação com os novos dados, se disponível
+      if (typeof updateUser === 'function') {
+        updateUser(updatedUserData);
+      } else {
         console.log('Dados atualizados:', updatedUserData);
       }
 
