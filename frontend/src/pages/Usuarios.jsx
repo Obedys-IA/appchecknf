@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../components/ui/table';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
@@ -29,6 +30,8 @@ import {
   Grid3X3,
   List,
   ChevronDown,
+  SortAsc,
+  SortDesc,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -452,30 +455,130 @@ const Usuarios = () => {
           <CardContent>
             {viewMode === 'table' ? (
               <div className="overflow-x-auto">
-                <table className="tabela-registros w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th 
-                        className="text-left p-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
-                        onClick={() => handleSort('nome')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Nome
-                          <ChevronDown className={`w-4 h-4 transition-transform ${sortBy === 'nome' && sortOrder === 'desc' ? 'rotate-180' : ''}`} />
-                        </div>
-                      </th>
-                      <th className="text-left p-4 font-semibold text-gray-700">Email</th>
-                      <th className="text-left p-4 font-semibold text-gray-700">Empresa</th>
-                      <th className="text-left p-4 font-semibold text-gray-700">Tipo</th>
-                      <th className="text-left p-4 font-semibold text-gray-700">Status</th>
-                      <th className="text-left p-4 font-semibold text-gray-700">Registro</th>
-                      <th className="text-left p-4 font-semibold text-gray-700">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="tabela-registros w-full border-collapse">
+                  <TableHeader>
+                    <TableRow className="border-b border-gray-200">
+                      <TableHead className="text-left p-2 font-semibold text-gray-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 hover:bg-transparent"
+                          onClick={() => handleSort('nome')}
+                        >
+                          <span className="mr-2">Nome</span>
+                          {sortBy === 'nome' ? (
+                            sortOrder === 'asc' ? (
+                              <SortAsc className="w-4 h-4" />
+                            ) : (
+                              <SortDesc className="w-4 h-4" />
+                            )
+                          ) : (
+                            <ChevronDown className="w-4 h-4 opacity-40" />
+                          )}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2 font-semibold text-gray-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 hover:bg-transparent"
+                          onClick={() => handleSort('email')}
+                        >
+                          <span className="mr-2">Email</span>
+                          {sortBy === 'email' ? (
+                            sortOrder === 'asc' ? (
+                              <SortAsc className="w-4 h-4" />
+                            ) : (
+                              <SortDesc className="w-4 h-4" />
+                            )
+                          ) : (
+                            <ChevronDown className="w-4 h-4 opacity-40" />
+                          )}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2 font-semibold text-gray-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 hover:bg-transparent"
+                          onClick={() => handleSort('empresa')}
+                        >
+                          <span className="mr-2">Empresa</span>
+                          {sortBy === 'empresa' ? (
+                            sortOrder === 'asc' ? (
+                              <SortAsc className="w-4 h-4" />
+                            ) : (
+                              <SortDesc className="w-4 h-4" />
+                            )
+                          ) : (
+                            <ChevronDown className="w-4 h-4 opacity-40" />
+                          )}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2 font-semibold text-gray-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 hover:bg-transparent"
+                          onClick={() => handleSort('tipo')}
+                        >
+                          <span className="mr-2">Tipo</span>
+                          {sortBy === 'tipo' ? (
+                            sortOrder === 'asc' ? (
+                              <SortAsc className="w-4 h-4" />
+                            ) : (
+                              <SortDesc className="w-4 h-4" />
+                            )
+                          ) : (
+                            <ChevronDown className="w-4 h-4 opacity-40" />
+                          )}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2 font-semibold text-gray-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 hover:bg-transparent"
+                          onClick={() => handleSort('status')}
+                        >
+                          <span className="mr-2">Status</span>
+                          {sortBy === 'status' ? (
+                            sortOrder === 'asc' ? (
+                              <SortAsc className="w-4 h-4" />
+                            ) : (
+                              <SortDesc className="w-4 h-4" />
+                            )
+                          ) : (
+                            <ChevronDown className="w-4 h-4 opacity-40" />
+                          )}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2 font-semibold text-gray-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 hover:bg-transparent"
+                          onClick={() => handleSort('dataRegistro')}
+                        >
+                          <span className="mr-2">Registro</span>
+                          {sortBy === 'dataRegistro' ? (
+                            sortOrder === 'asc' ? (
+                              <SortAsc className="w-4 h-4" />
+                            ) : (
+                              <SortDesc className="w-4 h-4" />
+                            )
+                          ) : (
+                            <ChevronDown className="w-4 h-4 opacity-40" />
+                          )}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2 font-semibold text-gray-700">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {usuariosFiltrados.map((usuario) => (
-                      <tr key={usuario.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                        <td className="p-4">
+                      <TableRow key={usuario.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                        <TableCell className="p-2">
                           <div>
                             <div className="font-medium text-gray-900">{usuario.nome}</div>
                             <div className="text-sm text-gray-500 flex items-center gap-1">
@@ -483,22 +586,22 @@ const Usuarios = () => {
                               {usuario.telefone}
                             </div>
                           </div>
-                        </td>
-                        <td className="p-4">
+                        </TableCell>
+                        <TableCell className="p-2">
                           <div className="flex items-center gap-1 text-gray-700">
                             <Mail className="w-3 h-3" />
                             {usuario.email}
                           </div>
-                        </td>
-                        <td className="p-4">
+                        </TableCell>
+                        <TableCell className="p-2">
                           <div className="flex items-center gap-1 text-gray-700">
                             <Building className="w-3 h-3" />
                             {usuario.empresa}
                           </div>
-                        </td>
-                        <td className="p-4">{getTipoBadge(usuario.tipo)}</td>
-                        <td className="p-4">{getStatusBadge(usuario.status)}</td>
-                        <td className="p-4">
+                        </TableCell>
+                        <TableCell className="p-2">{getTipoBadge(usuario.tipo)}</TableCell>
+                        <TableCell className="p-2">{getStatusBadge(usuario.status)}</TableCell>
+                        <TableCell className="p-2">
                           <div className="text-sm">
                             <div className="flex items-center gap-1 text-gray-700">
                               <Calendar className="w-3 h-3" />
@@ -510,8 +613,8 @@ const Usuarios = () => {
                               </div>
                             )}
                           </div>
-                        </td>
-                        <td className="p-4">
+                        </TableCell>
+                        <TableCell className="p-2">
                           <div className="flex gap-2">
                             {usuario.status === 'pendente' && (
                               <>
@@ -551,11 +654,11 @@ const Usuarios = () => {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

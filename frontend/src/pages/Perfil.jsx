@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Badge } from '../components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { User, Mail, Phone, Calendar, Save, Eye, EyeOff, Edit, Building, Lock, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getActiveUsersCount, getRecentlyActiveUsers } from '../lib/supabase';
@@ -170,14 +172,6 @@ const Perfil = () => {
   };
 
   const getTipoUsuarioBadge = (tipo) => {
-    const styles = {
-      administrador: 'bg-purple-100 text-purple-800',
-      gerencia: 'bg-blue-100 text-blue-800',
-      colaborador: 'bg-green-100 text-green-800',
-      fretista: 'bg-orange-100 text-orange-800',
-      novo: 'bg-gray-100 text-gray-800'
-    };
-    
     const labels = {
       administrador: 'Administrador',
       gerencia: 'Gerência',
@@ -185,11 +179,10 @@ const Perfil = () => {
       fretista: 'Fretista',
       novo: 'Novo Usuário'
     };
-    
     return (
-      <span className={`px-3 py-1 rounded-full text-sm font-medium ${styles[tipo] || styles.novo}`}>
+      <Badge variant="secondary" className="capitalize">
         {labels[tipo] || tipo}
-      </span>
+      </Badge>
     );
   };
 
@@ -303,19 +296,22 @@ const Perfil = () => {
               <label className="text-sm font-medium text-gray-700">Tipo de Usuário</label>
               <div className="relative">
                 <User className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                <select
+                <Select
                   value={formData.tipo}
-                  onChange={(e) => handleInputChange('tipo', e.target.value)}
+                  onValueChange={(value) => handleInputChange('tipo', value)}
                   disabled={!editMode || userData?.tipo !== 'administrador'}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value="">Selecione o tipo</option>
-                  <option value="administrador">Administrador</option>
-                  <option value="gerencia">Gerência</option>
-                  <option value="colaborador">Colaborador</option>
-                  <option value="fretista">Fretista</option>
-                  <option value="novo">Novo Usuário</option>
-                </select>
+                  <SelectTrigger className="w-full pl-10">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="administrador">Administrador</SelectItem>
+                    <SelectItem value="gerencia">Gerência</SelectItem>
+                    <SelectItem value="colaborador">Colaborador</SelectItem>
+                    <SelectItem value="fretista">Fretista</SelectItem>
+                    <SelectItem value="novo">Novo Usuário</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -432,17 +428,16 @@ const Perfil = () => {
             <div>
               <label className="text-sm font-medium text-gray-700">Status da Conta</label>
               <div className="mt-1">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  userData.status === 'ativo' ? 'bg-green-100 text-green-800' :
-                  userData.status === 'inativo' ? 'bg-red-100 text-red-800' :
-                  userData.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {userData.status === 'ativo' ? 'Ativa' :
-                   userData.status === 'inativo' ? 'Inativa' :
-                   userData.status === 'pendente' ? 'Pendente' :
-                   userData.status || 'Desconhecido'}
-                </span>
+                {(() => {
+                  const statusLabel = userData.status === 'ativo' ? 'Ativa'
+                    : userData.status === 'inativo' ? 'Inativa'
+                    : userData.status === 'pendente' ? 'Pendente'
+                    : (userData.status || 'Desconhecido');
+                  const statusVariant = userData.status === 'inativo' ? 'destructive'
+                    : userData.status === 'pendente' ? 'secondary'
+                    : 'default';
+                  return <Badge variant={statusVariant}>{statusLabel}</Badge>;
+                })()}
               </div>
             </div>
             <div>
@@ -516,14 +511,9 @@ const Perfil = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          user.tipo === 'administrador' ? 'bg-purple-100 text-purple-800' :
-                          user.tipo === 'gerencia' ? 'bg-blue-100 text-blue-800' :
-                          user.tipo === 'colaborador' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <Badge variant="secondary" className="capitalize text-xs">
                           {user.tipo}
-                        </span>
+                        </Badge>
                         <p className="text-xs text-gray-500 mt-1">
                           {user.last_sign_in_at ? 
                             new Date(user.last_sign_in_at).toLocaleTimeString('pt-BR', {

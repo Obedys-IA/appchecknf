@@ -18,10 +18,13 @@ import {
   Activity,
   Truck,
   Package,
-  AlertCircle
+  AlertCircle,
+  SortAsc,
+  SortDesc
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../components/ui/table'
 import { Input } from '../components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert'
@@ -32,6 +35,7 @@ import { Badge } from '../components/ui/badge'
 import { Bar, Doughnut } from 'react-chartjs-2'
 import { useTheme } from '../context/ThemeContext'
 import PageHeader from '../components/PageHeader.jsx'
+import { DivMotion } from '../components/ui/divmotion.jsx'
 import { API_URL } from '../config/api'
 import {
   Chart as ChartJS,
@@ -109,6 +113,9 @@ const Dashboard = () => {
     status: [],
     situacoes: []
   })
+  // Estados de ordenação para tabelas
+  const [sortAtrasos, setSortAtrasos] = useState({ key: 'cliente', order: 'asc' })
+  const [sortVencimentos, setSortVencimentos] = useState({ key: 'cliente', order: 'asc' })
   
   // Health check do sistema (API, banco, Google Sheets)
   useEffect(() => {
@@ -301,6 +308,48 @@ const Dashboard = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value)
+  }
+
+  // Ordenação local para tabelas de Atrasos e Vencimentos
+  const getSortVal = (item, key) => {
+    if (key === 'valor') {
+      const v = item.valor
+      const num = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.,-]/g, '').replace('.', '').replace(',', '.'))
+      return isNaN(num) ? 0 : num
+    }
+    return String(item[key] ?? '').toLowerCase()
+  }
+
+  const atrasosSorted = React.useMemo(() => {
+    const arr = Array.isArray(dashboardData.atrasosTop) ? [...dashboardData.atrasosTop] : []
+    arr.sort((a, b) => {
+      const va = getSortVal(a, sortAtrasos.key)
+      const vb = getSortVal(b, sortAtrasos.key)
+      if (va < vb) return sortAtrasos.order === 'asc' ? -1 : 1
+      if (va > vb) return sortAtrasos.order === 'asc' ? 1 : -1
+      return 0
+    })
+    return arr
+  }, [dashboardData.atrasosTop, sortAtrasos])
+
+  const vencimentosSorted = React.useMemo(() => {
+    const arr = Array.isArray(dashboardData.vencimentosProximos) ? [...dashboardData.vencimentosProximos] : []
+    arr.sort((a, b) => {
+      const va = getSortVal(a, sortVencimentos.key)
+      const vb = getSortVal(b, sortVencimentos.key)
+      if (va < vb) return sortVencimentos.order === 'asc' ? -1 : 1
+      if (va > vb) return sortVencimentos.order === 'asc' ? 1 : -1
+      return 0
+    })
+    return arr
+  }, [dashboardData.vencimentosProximos, sortVencimentos])
+
+  const handleSortAtrasos = (key) => {
+    setSortAtrasos(prev => ({ key, order: prev.key === key ? (prev.order === 'asc' ? 'desc' : 'asc') : 'asc' }))
+  }
+
+  const handleSortVencimentos = (key) => {
+    setSortVencimentos(prev => ({ key, order: prev.key === key ? (prev.order === 'asc' ? 'desc' : 'asc') : 'asc' }))
   }
 
   const getStatusColor = (status) => {
@@ -567,7 +616,7 @@ const Dashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card">
+        <DivMotion><Card className="card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Notas</CardTitle>
             <FileText className="h-4 w-4 text-blue-600" />
@@ -579,9 +628,9 @@ const Dashboard = () => {
             </p>
             <Progress value={dashboardData.totalNotas > 0 ? Math.min((dashboardData.totalNotas / 100) * 100, 100) : 0} className="mt-2" />
           </CardContent>
-        </Card>
+        </Card></DivMotion>
 
-        <Card className="card">
+        <DivMotion><Card className="card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Notas Entregues</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
@@ -593,9 +642,9 @@ const Dashboard = () => {
             </p>
             <Progress value={calculateEfficiency()} className="mt-2" />
           </CardContent>
-        </Card>
+        </Card></DivMotion>
 
-        <Card className="card">
+        <DivMotion><Card className="card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
             <DollarSign className="h-4 w-4 text-emerald-600" />
@@ -607,9 +656,9 @@ const Dashboard = () => {
             </p>
             <Progress value={dashboardData.crescimentoValor > 0 ? Math.min(dashboardData.crescimentoValor, 100) : 0} className="mt-2" />
           </CardContent>
-        </Card>
+        </Card></DivMotion>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <DivMotion><Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
@@ -621,7 +670,7 @@ const Dashboard = () => {
             </p>
             <Progress value={dashboardData.crescimentoClientes > 0 ? Math.min(dashboardData.crescimentoClientes * 10, 100) : 0} className="mt-2" />
           </CardContent>
-        </Card>
+        </Card></DivMotion>
       </div>
 
       {/* Status Overview Cards */}
@@ -687,7 +736,7 @@ const Dashboard = () => {
         <TabsContent value="charts" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Evolution Chart */}
-            <Card className="shadow-2xl border dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
+            <DivMotion><Card className="shadow-2xl border dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
@@ -744,10 +793,10 @@ const Dashboard = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </Card></DivMotion>
 
             {/* Status Distribution Chart */}
-            <Card>
+            <DivMotion><Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <PieChart className="h-5 w-5" />
@@ -803,12 +852,12 @@ const Dashboard = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </Card></DivMotion>
           </div>
         </TabsContent>
 
         <TabsContent value="atrasos">
-          <Card className="card">
+          <DivMotion><Card className="card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" />
@@ -820,53 +869,61 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="tabela-registros w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Cliente</th>
-                      <th className="text-left p-2">Nota Fiscal</th>
-                      <th className="text-left p-2">Valor</th>
-                      <th className="text-left p-2">Fretista</th>
-                      <th className="text-left p-2">Data de Entrega</th>
-                      <th className="text-left p-2">Emissão</th>
-                      <th className="text-left p-2">Dias de Atraso</th>
-                      <th className="text-left p-2">Situação</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashboardData.atrasosTop?.map((item, index) => (
-                      <tr key={index} className="border-b hover:bg-gray-50">
-                        <td className="p-2">{item.cliente}</td>
-                        <td className="p-2">{item.numeroNota}</td>
-                        <td className="p-2">{formatCurrency(item.valor)}</td>
-                        <td className="p-2">{item.fretista || '-'}</td>
-                        <td className="p-2">{item.dataEntrega || '-'}</td>
-                        <td className="p-2">{item.emissao}</td>
-                        <td className="p-2">
+                <Table className="tabela-registros w-full text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b">
+                      <TableHead className="text-left p-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleSortAtrasos('cliente')} className="flex items-center gap-1 p-0 h-auto">
+                          Cliente {sortAtrasos.key === 'cliente' ? (sortAtrasos.order === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />) : null}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2">Nota Fiscal</TableHead>
+                      <TableHead className="text-left p-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleSortAtrasos('valor')} className="flex items-center gap-1 p-0 h-auto">
+                          Valor {sortAtrasos.key === 'valor' ? (sortAtrasos.order === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />) : null}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2">Fretista</TableHead>
+                      <TableHead className="text-left p-2">Data de Entrega</TableHead>
+                      <TableHead className="text-left p-2">Emissão</TableHead>
+                      <TableHead className="text-left p-2">Dias de Atraso</TableHead>
+                      <TableHead className="text-left p-2">Situação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {atrasosSorted?.map((item, index) => (
+                      <TableRow key={index} className="border-b hover:bg-gray-50">
+                        <TableCell className="p-2">{item.cliente}</TableCell>
+                        <TableCell className="p-2">{item.numeroNota}</TableCell>
+                        <TableCell className="p-2">{formatCurrency(item.valor)}</TableCell>
+                        <TableCell className="p-2">{item.fretista || '-'}</TableCell>
+                        <TableCell className="p-2">{item.dataEntrega || '-'}</TableCell>
+                        <TableCell className="p-2">{item.emissao}</TableCell>
+                        <TableCell className="p-2">
                           <Badge className={getDiasGradientColor(item.diasAtraso)}>
                             {item.diasAtraso} dias
                           </Badge>
-                        </td>
-                        <td className="p-2">
+                        </TableCell>
+                        <TableCell className="p-2">
                           {renderSituacaoBadge(item.situacao)}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )) || (
-                      <tr>
-                        <td colSpan="8" className="text-center py-8 text-gray-500">
+                      <TableRow>
+                        <TableCell colSpan="8" className="text-center py-8 text-gray-500">
                           Nenhum atraso encontrado
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
-          </Card>
+          </Card></DivMotion>
         </TabsContent>
 
         <TabsContent value="vencimentos">
-          <Card className="card">
+          <DivMotion><Card className="card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
@@ -878,51 +935,59 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="tabela-registros w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Cliente</th>
-                      <th className="text-left p-2">Nota Fiscal</th>
-                      <th className="text-left p-2">Valor</th>
-                      <th className="text-left p-2">Fretista</th>
-                      <th className="text-left p-2">Data de Entrega</th>
-                      <th className="text-left p-2">Vencimento</th>
-                      <th className="text-left p-2">Dias Restantes</th>
-                      <th className="text-left p-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashboardData.vencimentosProximos?.filter(v => (v.status || '').toUpperCase() === 'PENDENTE').map((item, index) => (
-                      <tr key={index} className="border-b hover:bg-gray-50">
-                        <td className="p-2">{item.cliente}</td>
-                        <td className="p-2">{item.numeroNota}</td>
-                        <td className="p-2">{formatCurrency(item.valor)}</td>
-                        <td className="p-2">{item.fretista || '-'}</td>
-                        <td className="p-2">{item.dataEntrega || '-'}</td>
-                        <td className="p-2">{item.vencimento}</td>
-                        <td className="p-2">
+                <Table className="tabela-registros w-full text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b">
+                      <TableHead className="text-left p-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleSortVencimentos('cliente')} className="flex items-center gap-1 p-0 h-auto">
+                          Cliente {sortVencimentos.key === 'cliente' ? (sortVencimentos.order === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />) : null}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2">Nota Fiscal</TableHead>
+                      <TableHead className="text-left p-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleSortVencimentos('valor')} className="flex items-center gap-1 p-0 h-auto">
+                          Valor {sortVencimentos.key === 'valor' ? (sortVencimentos.order === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />) : null}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-left p-2">Fretista</TableHead>
+                      <TableHead className="text-left p-2">Data de Entrega</TableHead>
+                      <TableHead className="text-left p-2">Vencimento</TableHead>
+                      <TableHead className="text-left p-2">Dias Restantes</TableHead>
+                      <TableHead className="text-left p-2">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vencimentosSorted?.filter(v => (v.status || '').toUpperCase() === 'PENDENTE').map((item, index) => (
+                      <TableRow key={index} className="border-b hover:bg-gray-50">
+                        <TableCell className="p-2">{item.cliente}</TableCell>
+                        <TableCell className="p-2">{item.numeroNota}</TableCell>
+                        <TableCell className="p-2">{formatCurrency(item.valor)}</TableCell>
+                        <TableCell className="p-2">{item.fretista || '-'}</TableCell>
+                        <TableCell className="p-2">{item.dataEntrega || '-'}</TableCell>
+                        <TableCell className="p-2">{item.vencimento}</TableCell>
+                        <TableCell className="p-2">
                           <Badge className={getDiasGradientColor(item.diasRestantes)}>
                             {item.diasRestantes} dias
                           </Badge>
-                        </td>
-                        <td className="p-2">
+                        </TableCell>
+                        <TableCell className="p-2">
                           <Badge className={getStatusColor(item.status)}>
                             {item.status}
                           </Badge>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )) || (
-                      <tr>
-                        <td colSpan="8" className="text-center py-8 text-gray-500">
+                      <TableRow>
+                        <TableCell colSpan="8" className="text-center py-8 text-gray-500">
                           Nenhum vencimento próximo encontrado
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
-          </Card>
+          </Card></DivMotion>
         </TabsContent>
 
         <TabsContent value="acoes">
@@ -963,7 +1028,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Quick Actions */}
-            <Card className="card">
+            <DivMotion><Card className="card">
               <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>
                 <CardDescription>
@@ -995,10 +1060,10 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </Card></DivMotion>
 
             {/* System Status */}
-            <Card>
+            <DivMotion><Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5" />
@@ -1029,7 +1094,7 @@ const Dashboard = () => {
                   Última atualização: {systemStatus.updatedAt ? systemStatus.updatedAt.toLocaleString('pt-BR') : '—'}
                 </div>
               </CardContent>
-            </Card>
+            </Card></DivMotion>
           </div>
         </TabsContent>
       </Tabs>

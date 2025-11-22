@@ -241,7 +241,7 @@ const ProcessarPDFs = () => {
             <Button 
               onClick={handleUpload} 
               disabled={selectedFiles.length === 0 || isProcessing}
-              className="btn btn-green w-full"
+              className="w-full"
               size="lg"
             >
               {isProcessing ? (
@@ -303,11 +303,11 @@ const ProcessarPDFs = () => {
               </div>
 
               <div className="flex gap-4 pt-4 border-t flex-wrap">
-                <Button onClick={handleDownloadExcel} variant="outline" className="btn btn-outline flex-1">
+                <Button onClick={handleDownloadExcel} variant="outline" className="flex-1">
                   <Download className="mr-2 h-4 w-4" />
                   Baixar Excel
                 </Button>
-                <Button onClick={handleDownloadZip} variant="outline" className="btn btn-outline flex-1">
+                <Button onClick={handleDownloadZip} variant="outline" className="flex-1">
                   <Package className="mr-2 h-4 w-4" />
                   Baixar ZIP
                 </Button>

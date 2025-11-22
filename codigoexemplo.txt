@@ -1,0 +1,448 @@
+// ============================================
+// FUNÇÕES DE VALIDAÇÃO - CFOP E NATUREZA
+// ============================================
+
+/**
+ * Lista de CFOPs válidos para processamento
+ * Apenas notas com estes CFOPs serão processadas
+ */
+const CFOPS_VALIDOS = [
+  5100, 5101, 5102, 5103, 5104, 5105, 5106, 5107, 5108,
+  6100, 6101, 6102, 6103, 6104, 6105, 6106, 6107, 6108,
+  5400, 5401, 5402, 5403, 5404, 5405
+];
+
+/**
+ * Palavras-chave PERMITIDAS na natureza da operação
+ */
+const NATUREZA_PERMITIDA = [
+  'REVENDA',
+  'VENDA',
+  'REVENDA DE MERCADORIA',
+  'REVENDA MERCADORIA',
+  'VENDA MERCADORIA',
+  'VENDA DE MERCADORIA'
+];
+
+/**
+ * Palavras-chave PROIBIDAS na natureza da operação
+ */
+const NATUREZA_PROIBIDA = [
+  'TRANSFERENCIA',
+  'TRANSFERÊNCIA',
+  'BONIFICACAO',
+  'BONIFICAÇÃO',
+  'BONIFICACÃO',
+  'BONIFICAÇAO',
+  'DEVOLUÇÃO',
+  'DEVOLUCAO',
+  'DEVOLUÇAO',
+  'DEVOLUCÃO',
+  'DEV',
+  'DEVOL',
+  'PERDA',
+  'PERDAS',
+  'OUTRAS',
+  'OUTRAS SAÍDAS',
+  'OUTRAS SAIDAS',
+  'REMESSA',
+  'REM',
+  'COMPRA',
+  'COMPRAS'
+];
+
+/**
+ * Normaliza texto removendo acentos, convertendo para maiúsculas
+ * e removendo espaços extras
+ */
+function normalizarTexto(texto) {
+  if (!texto) return '';
+  
+  return String(texto)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .toUpperCase()
+    .trim()
+    .replace(/\s+/g, ' '); // Remove espaços múltiplos
+}
+
+/**
+ * Valida se o CFOP está na lista de CFOPs válidos
+ * @param {string|number} cfop - CFOP a ser validado
+ * @returns {Object} - { valido: boolean, erro: string, cfop: string }
+ */
+function validarCFOP(cfop) {
+  if (!cfop) {
+    return { 
+      valido: false, 
+      erro: 'CFOP não informado',
+      cfop: null
+    };
+  }
+
+  // Limpar e converter para número
+  const cfopLimpo = String(cfop).replace(/\D/g, '');
+  
+  if (cfopLimpo.length !== 4) {
+    return { 
+      valido: false, 
+      erro: 'CFOP deve ter 4 dígitos',
+      cfop: cfopLimpo
+    };
+  }
+
+  const cfopNum = parseInt(cfopLimpo, 10);
+  
+  // Verificar se está na lista de CFOPs válidos
+  if (!CFOPS_VALIDOS.includes(cfopNum)) {
+    return { 
+      valido: false, 
+      erro: `CFOP ${cfopLimpo} não está na lista de CFOPs válidos para processamento (vendas). Esta nota será rejeitada.`,
+      cfop: cfopLimpo,
+      aviso: 'Este CFOP não refere-se a uma nota fiscal de venda'
+    };
+  }
+
+  return { 
+    valido: true, 
+    cfop: cfopLimpo 
+  };
+}
+
+/**
+ * Valida se a natureza da operação é permitida
+ * @param {string} natureza - Natureza da operação a ser validada
+ * @returns {Object} - { valido: boolean, erro: string, natureza: string }
+ */
+function validarNaturezaOperacao(natureza) {
+  if (!natureza || typeof natureza !== 'string') {
+    return { 
+      valido: false, 
+      erro: 'Natureza da operação não informada',
+      natureza: null
+    };
+  }
+
+  const naturezaNormalizada = normalizarTexto(natureza);
+  
+  // 1. VERIFICAR SE CONTÉM PALAVRAS PROIBIDAS
+  for (const palavraProibida of NATUREZA_PROIBIDA) {
+    const palavraProibidaNormalizada = normalizarTexto(palavraProibida);
+    
+    if (naturezaNormalizada.includes(palavraProibidaNormalizada)) {
+      return {
+        valido: false,
+        erro: `Natureza da operação "${natureza}" contém termo proibido: "${palavraProibida}". Esta nota não refere-se a uma venda e será rejeitada.`,
+        natureza: natureza,
+        termoProibido: palavraProibida
+      };
+    }
+  }
+  
+  // 2. VERIFICAR SE CONTÉM PALAVRAS PERMITIDAS
+  let contemPalavraPermitida = false;
+  let palavraEncontrada = null;
+  
+  for (const palavraPermitida of NATUREZA_PERMITIDA) {
+    const palavraPermitidaNormalizada = normalizarTexto(palavraPermitida);
+    
+    if (naturezaNormalizada.includes(palavraPermitidaNormalizada)) {
+      contemPalavraPermitida = true;
+      palavraEncontrada = palavraPermitida;
+      break;
+    }
+  }
+  
+  if (!contemPalavraPermitida) {
+    return {
+      valido: false,
+      erro: `Natureza da operação "${natureza}" não contém termos válidos para venda (REVENDA, VENDA, etc). Esta nota será rejeitada.`,
+      natureza: natureza,
+      aviso: 'Natureza da operação não indica uma operação de venda válida'
+    };
+  }
+  
+  // 3. VALIDAÇÃO ADICIONAL: verificar se contém palavras-chave de venda
+  const palavrasChaveVenda = ['VENDA', 'REVENDA'];
+  const temPalavraVenda = palavrasChaveVenda.some(palavra => 
+    naturezaNormalizada.includes(normalizarTexto(palavra))
+  );
+  
+  if (!temPalavraVenda) {
+    return {
+      valido: false,
+      erro: `Natureza da operação "${natureza}" não caracteriza uma operação de venda válida.`,
+      natureza: natureza
+    };
+  }
+
+  return { 
+    valido: true, 
+    natureza: natureza,
+    palavraEncontrada: palavraEncontrada
+  };
+}
+
+/**
+ * Valida se a nota fiscal pode ser processada
+ * Verifica CFOP E Natureza da Operação
+ * @param {Object} campos - Campos extraídos da nota fiscal
+ * @returns {Object} - { podeProcessar: boolean, motivo: string, detalhes: Object }
+ */
+function podeProcessarNota(campos) {
+  const resultado = {
+    podeProcessar: false,
+    motivo: '',
+    detalhes: {
+      cfop: null,
+      natureza: null,
+      validacoes: []
+    }
+  };
+
+  // 1. Validar CFOP
+  const validacaoCFOP = validarCFOP(campos.cfop);
+  resultado.detalhes.cfop = validacaoCFOP;
+  
+  if (!validacaoCFOP.valido) {
+    resultado.detalhes.validacoes.push({
+      campo: 'CFOP',
+      valido: false,
+      erro: validacaoCFOP.erro,
+      valor: campos.cfop
+    });
+  }
+
+  // 2. Validar Natureza da Operação
+  const validacaoNatureza = validarNaturezaOperacao(campos.naturezaOperacao);
+  resultado.detalhes.natureza = validacaoNatureza;
+  
+  if (!validacaoNatureza.valido) {
+    resultado.detalhes.validacoes.push({
+      campo: 'Natureza da Operação',
+      valido: false,
+      erro: validacaoNatureza.erro,
+      valor: campos.naturezaOperacao
+    });
+  }
+
+  // 3. Determinar se pode processar (CFOP válido OU Natureza válida)
+  const cfopValido = validacaoCFOP.valido;
+  const naturezaValida = validacaoNatureza.valido;
+
+  if (cfopValido || naturezaValida) {
+    resultado.podeProcessar = true;
+    resultado.motivo = 'Nota fiscal validada com sucesso';
+    
+    if (cfopValido && naturezaValida) {
+      resultado.motivo += ' (CFOP e Natureza da Operação válidos)';
+    } else if (cfopValido) {
+      resultado.motivo += ' (CFOP válido)';
+      // Adicionar aviso sobre natureza
+      if (!naturezaValida) {
+        resultado.detalhes.avisos = resultado.detalhes.avisos || [];
+        resultado.detalhes.avisos.push('Natureza da Operação não está no formato padrão, mas CFOP é válido');
+      }
+    } else if (naturezaValida) {
+      resultado.motivo += ' (Natureza da Operação válida)';
+      // Adicionar aviso sobre CFOP
+      if (!cfopValido) {
+        resultado.detalhes.avisos = resultado.detalhes.avisos || [];
+        resultado.detalhes.avisos.push('CFOP não está na lista padrão, mas Natureza da Operação é válida');
+      }
+    }
+  } else {
+    resultado.podeProcessar = false;
+    
+    // Montar mensagem de erro detalhada
+    const erros = [];
+    
+    if (!cfopValido) {
+      erros.push(`CFOP: ${validacaoCFOP.erro}`);
+    }
+    
+    if (!naturezaValida) {
+      erros.push(`Natureza: ${validacaoNatureza.erro}`);
+    }
+    
+    resultado.motivo = `Nota fiscal REJEITADA. ${erros.join(' | ')}`;
+  }
+
+  return resultado;
+}
+
+// ============================================
+// INTEGRAÇÃO COM PROCESSAMENTO DE NOTAS
+// ============================================
+
+/**
+ * Processa uma nota fiscal individual
+ * Extrai campos, valida e registra no sistema
+ */
+async function processarNotaFiscal(texto, pdfBytes, numeroNF) {
+  try {
+    // 1. Extrair campos da nota
+    const campos = extrairCamposNota(texto);
+    
+    console.log(`\n📋 Processando NF ${numeroNF}`);
+    console.log(`CFOP: ${campos.cfop}`);
+    console.log(`Natureza: ${campos.naturezaOperacao}`);
+    
+    // 2. Validar se pode processar
+    const validacao = podeProcessarNota(campos);
+    
+    console.log(`Validação: ${validacao.motivo}`);
+    
+    if (!validacao.podeProcessar) {
+      console.log(`❌ NF ${numeroNF} REJEITADA`);
+      
+      return {
+        sucesso: false,
+        numeroNF: numeroNF,
+        motivo: validacao.motivo,
+        detalhes: validacao.detalhes,
+        validacoes: validacao.detalhes.validacoes
+      };
+    }
+    
+    console.log(`✅ NF ${numeroNF} APROVADA para processamento`);
+    
+    // 3. Prosseguir com registro no banco de dados
+    // ... (seu código existente de registro)
+    
+    return {
+      sucesso: true,
+      numeroNF: numeroNF,
+      motivo: validacao.motivo,
+      campos: campos,
+      validacao: validacao
+    };
+    
+  } catch (error) {
+    console.error(`Erro ao processar NF ${numeroNF}:`, error);
+    return {
+      sucesso: false,
+      numeroNF: numeroNF,
+      motivo: `Erro no processamento: ${error.message}`,
+      erro: error
+    };
+  }
+}
+
+// ============================================
+// EXEMPLO DE USO NO ENDPOINT /processar
+// ============================================
+
+app.post('/processar', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+    }
+    
+    const pdfBytes = req.file.buffer;
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const numPages = pdfDoc.getPageCount();
+
+    const resultados = {
+      totalNotas: 0,
+      aprovadas: 0,
+      rejeitadas: 0,
+      detalhes: [],
+      validacoes: []
+    };
+
+    // Extrair e agrupar páginas por NF
+    const paginasPorNF = {};
+    const textosPorNF = {};
+    
+    for (let i = 0; i < numPages; i++) {
+      const tempPdf = await PDFDocument.create();
+      const [pagina] = await tempPdf.copyPages(pdfDoc, [i]);
+      tempPdf.addPage(pagina);
+      const tempPdfBytes = await tempPdf.save();
+      const tempData = await pdfParse(tempPdfBytes);
+      const texto = tempData.text;
+      const numeroNF = extrairNumeroNF(texto) || `SEMNF_${i+1}`;
+      
+      if (!paginasPorNF[numeroNF]) {
+        paginasPorNF[numeroNF] = [];
+        textosPorNF[numeroNF] = [];
+      }
+      paginasPorNF[numeroNF].push(i);
+      textosPorNF[numeroNF].push(texto);
+    }
+
+    // Processar cada nota
+    for (const numeroNF in paginasPorNF) {
+      resultados.totalNotas++;
+      
+      const resultado = await processarNotaFiscal(
+        textosPorNF[numeroNF][0],
+        pdfBytes,
+        numeroNF
+      );
+      
+      if (resultado.sucesso) {
+        resultados.aprovadas++;
+        resultados.detalhes.push({
+          numeroNF: numeroNF,
+          status: 'APROVADA',
+          mensagem: resultado.motivo
+        });
+      } else {
+        resultados.rejeitadas++;
+        resultados.detalhes.push({
+          numeroNF: numeroNF,
+          status: 'REJEITADA',
+          mensagem: resultado.motivo,
+          validacoes: resultado.validacoes
+        });
+        
+        // Adicionar à lista de validações para o relatório
+        if (resultado.validacoes && resultado.validacoes.length > 0) {
+          resultados.validacoes.push(...resultado.validacoes.map(v => ({
+            numeroNF: numeroNF,
+            ...v
+          })));
+        }
+      }
+    }
+
+    // Retornar resposta
+    res.json({
+      message: 'Processamento concluído',
+      resumo: {
+        total: resultados.totalNotas,
+        aprovadas: resultados.aprovadas,
+        rejeitadas: resultados.rejeitadas,
+        taxaAprovacao: resultados.totalNotas > 0 
+          ? Math.round((resultados.aprovadas / resultados.totalNotas) * 100) 
+          : 0
+      },
+      detalhes: resultados.detalhes,
+      validacoes: resultados.validacoes.length > 0 ? resultados.validacoes : undefined
+    });
+
+  } catch (error) {
+    console.error('Erro no processamento:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error.message 
+    });
+  }
+});
+
+// ============================================
+// EXPORTAR FUNÇÕES PARA TESTES
+// ============================================
+
+module.exports = {
+  CFOPS_VALIDOS,
+  NATUREZA_PERMITIDA,
+  NATUREZA_PROIBIDA,
+  normalizarTexto,
+  validarCFOP,
+  validarNaturezaOperacao,
+  podeProcessarNota,
+  processarNotaFiscal
+};

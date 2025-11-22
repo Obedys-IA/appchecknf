@@ -7,6 +7,7 @@ import { Badge } from '../components/ui/badge'
 import { Alert, AlertDescription } from '../components/ui/alert'
 import { Separator } from '../components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../components/ui/table'
 import ModalIncluirRegistro from '../components/ModalIncluirRegistro'
 import ModalEditarRegistro from '../components/ModalEditarRegistro'
 import { addRowToSheet, updateRowInSheet } from '../services/googleSheets'
@@ -1009,7 +1010,19 @@ const Registros = () => {
             </Select>
           </div>
 
-{/* Botões de Ação dos Filtros */} <div className="flex gap-2"> <Button onClick={loadRegistros} className="btn btn-green" > <Search className="w-4 h-4 mr-2" /> Aplicar Filtros </Button> <Button variant="outline" onClick={clearFilters} className="btn btn-outline" > <RotateCcw className="w-4 h-4 mr-2" /> Limpar Filtros </Button> </div> </CardContent> </Card>
+{/* Botões de Ação dos Filtros */}
+<div className="flex gap-2">
+  <Button onClick={loadRegistros}>
+    <Search className="w-4 h-4 mr-2" />
+    Aplicar Filtros
+  </Button>
+  <Button variant="outline" onClick={clearFilters}>
+    <RotateCcw className="w-4 h-4 mr-2" />
+    Limpar Filtros
+  </Button>
+</div>
+</CardContent>
+</Card>
 
       {/* Paginação */}
       {filteredRegistros.length > 0 && (
@@ -1135,171 +1148,189 @@ const Registros = () => {
         <CardContent className="p-0">
           {viewMode === 'table' ? (
             <div className="overflow-x-auto">
-              <table className="tabela-registros w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="text-left p-4 w-12">
+              <Table className="tabela-registros w-full text-sm">
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead className="text-left w-12 p-2">
                       <input
                         type="checkbox"
                         checked={selectedRegistros.length === filteredRegistros.length && filteredRegistros.length > 0}
                         onChange={selectAllRegistros}
                         className="rounded border-gray-300"
                       />
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
-                      <button 
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700 p-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleSort('numero_nf')}
-                        className="flex items-center gap-1 hover:text-green-600"
+                        className="px-0"
                       >
                         NF
                         {sortConfig.key === 'numero_nf' && (
                           sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                         )}
-                      </button>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700 p-2">
                       <div className="space-y-2">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleSort('nome_fantasia')}
-                          className="flex items-center gap-1 hover:text-green-600"
+                          className="px-0"
                         >
                           Clientes
                           {sortConfig.key === 'nome_fantasia' && (
                             sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                           )}
-                        </button>
+                        </Button>
                         {/* Filtro do cabeçalho removido */}
                       </div>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
-                      <button 
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700 p-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleSort('data_emissao')}
-                        className="flex items-center gap-1 hover:text-green-600"
+                        className="px-0"
                       >
                         Data Emissão
                         {sortConfig.key === 'data_emissao' && (
                           sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                         )}
-                      </button>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
-                      <button 
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700 p-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleSort('data_entrega')}
-                        className="flex items-center gap-1 hover:text-green-600"
+                        className="px-0"
                       >
                         Data de Entrega
                         {sortConfig.key === 'data_entrega' && (
                           sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                         )}
-                      </button>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
-                      <button 
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700 p-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleSort('valor_total')}
-                        className="flex items-center gap-1 hover:text-green-600"
+                        className="px-0"
                       >
                         Valor
                         {sortConfig.key === 'valor_total' && (
                           sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                         )}
-                      </button>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700">
                       <div className="space-y-2">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleSort('fretista')}
-                          className="flex items-center gap-1 hover:text-green-600"
+                          className="px-0"
                         >
                           Fretista
                           {sortConfig.key === 'fretista' && (
                             sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                           )}
-                        </button>
+                        </Button>
                         {/* Filtro do cabeçalho removido */}
                       </div>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Placa</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700">Placa</TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700">
                       <div className="space-y-2">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleSort('status')}
-                          className="flex items-center gap-1 hover:text-green-600"
+                          className="px-0"
                         >
                           Status
                           {sortConfig.key === 'status' && (
                             sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                           )}
-                        </button>
+                        </Button>
                         {/* Filtro do cabeçalho removido */}
                       </div>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700">
                       <div className="space-y-2">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleSort('situacao')}
-                          className="flex items-center gap-1 hover:text-green-600"
+                          className="px-0"
                         >
                           Situação
                           {sortConfig.key === 'situacao' && (
                             sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                           )}
-                        </button>
+                        </Button>
                         {/* Filtro do cabeçalho removido */}
                       </div>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700">
                       <div className="space-y-2">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleSort('pefin')}
-                          className="flex items-center gap-1 hover:text-green-600"
+                          className="px-0"
                         >
                           PeFin
                           {sortConfig.key === 'pefin' && (
                             sortConfig.direction === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
                           )}
-                        </button>
+                        </Button>
                         {/* Filtro do cabeçalho removido */}
                       </div>
-                    </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
+                    </TableHead>
+                    <TableHead className="text-left font-semibold text-gray-700 p-2">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {currentRegistros.map((registro, index) => (
-                    <tr key={registro.id} className={`border-b hover:bg-green-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                      <td className="p-4">
+                    <TableRow key={registro.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                      <TableCell className="p-2">
                         <input
                           type="checkbox"
                           checked={selectedRegistros.includes(registro.id)}
                           onChange={() => toggleSelectRegistro(registro.id)}
                           className="rounded border-gray-300"
                         />
-                      </td>
-                      <td className="p-4">
+                      </TableCell>
+                      <TableCell className="p-2 text-sm">
                         <Badge variant="outline" className="font-mono text-xs">
                           {registro.numero_nf}
                         </Badge>
-                      </td>
-                      <td className="p-4 align-top">
+                      </TableCell>
+                      <TableCell className="align-top p-2 text-sm">
                         <div className="font-medium text-gray-900 whitespace-normal break-words">{registro.nome_fantasia}</div>
-                      </td>
-                      <td className="p-4 text-gray-600">{formatDate(registro.data_emissao)}</td>
-                      <td className="p-4 text-gray-600">{registro.data_entrega ? formatDate(registro.data_entrega) : '-'}</td>
-                      <td className="p-4">
+                      </TableCell>
+                      <TableCell className="text-gray-600 p-2 text-sm">{formatDate(registro.data_emissao)}</TableCell>
+                      <TableCell className="text-gray-600 p-2 text-sm">{registro.data_entrega ? formatDate(registro.data_entrega) : '-'}</TableCell>
+                      <TableCell className="p-2 text-sm">
                         <span className="font-semibold text-green-700">
                           {formatCurrency(parseFloat(registro.valor_total || 0))}
                         </span>
-                      </td>
-                      <td className="p-4 text-gray-700">{registro.fretista}</td>
-                      <td className="p-4">
+                      </TableCell>
+                      <TableCell className="text-gray-700 p-2 text-sm">{registro.fretista}</TableCell>
+                      <TableCell className="p-2 text-sm">
                         <Badge variant="secondary" className="font-mono text-xs">
                           {registro.placa}
                         </Badge>
-                      </td>
-                      <td className="p-4">{getStatusBadge(registro)}</td>
-                      <td className="p-4">{getSituacaoBadge(registro)}</td>
-                      <td className="p-4">{getPeFinBadge(registro)}</td>
-                      <td className="p-4">
+                      </TableCell>
+                      <TableCell className="p-2 text-sm">{getStatusBadge(registro)}</TableCell>
+                      <TableCell className="p-2 text-sm">{getSituacaoBadge(registro)}</TableCell>
+                      <TableCell className="p-2 text-sm">{getPeFinBadge(registro)}</TableCell>
+                      <TableCell className="p-2 text-sm">
                         <div className="flex gap-1 flex-wrap">
                           <Button size="sm" variant="ghost" onClick={() => handleEdit(registro)} className="hover:bg-blue-100">
                             <Edit className="h-4 w-4 text-blue-600" />
@@ -1316,11 +1347,11 @@ const Registros = () => {
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">

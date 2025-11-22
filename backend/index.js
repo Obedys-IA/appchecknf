@@ -838,15 +838,15 @@ function extrairCamposNota(texto) {
   // Natureza da Operação
   let naturezaOperacao = '';
   const naturezaMatches = [
-    texto.match(/Natureza (?:da |de )?Opera[çc][aã]o\s*:?\s*([A-Za-z\s\-\/]+)/i),
-    texto.match(/NATUREZA (?:DA |DE )?OPERA[ÇC][ÃA]O\s*:?\s*([A-Za-z\s\-\/]+)/i),
-    texto.match(/Nat\.?\s*Opera[çc][aã]o\s*:?\s*([A-Za-z\s\-\/]+)/i),
-    texto.match(/Opera[çc][aã]o\s*:?\s*([A-Za-z\s\-\/]+)/i)
+    texto.match(/Natureza (?:da |de )?Opera[çc][aã]o\s*:?\s*([^\r\n]+)/i),
+    texto.match(/NATUREZA (?:DA |DE )?OPERA[ÇC][ÃA]O\s*:?\s*([^\r\n]+)/i),
+    texto.match(/Nat\.?\s*Opera[çc][aã]o\s*:?\s*([^\r\n]+)/i),
+    texto.match(/Opera[çc][aã]o\s*:?\s*([^\r\n]+)/i)
   ];
   
   for (const match of naturezaMatches) {
     if (match) {
-      naturezaOperacao = match[1].trim().split(/\s+/).slice(0, 2).join(' '); // Limita a 2 palavras conforme solicitado
+      naturezaOperacao = match[1].trim();
       break;
     }
   }
@@ -1040,6 +1040,9 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     return res.status(400).json({ error: 'Falha ao interpretar PDF', details: e.message })
   }
   const numPages = pdfDoc.getPageCount();
+  if (numPages > 200) {
+    return res.status(400).json({ error: 'Arquivo excede 200 páginas', details: 'Cada PDF deve ter no máximo 200 páginas' })
+  }
 
   // Extrair texto de cada página e agrupar por NF
   const paginasPorNF = {};
@@ -1091,7 +1094,29 @@ app.post('/processar', upload.single('file'), async (req, res) => {
     // Extrair campos da nota (usa o texto da primeira página do grupo)
     const campos = extrairCamposNota(textosPorNF[numeroNF][0]);
     
-    // Calcular campos automáticos
+    // Validação de regras antes de qualquer gravação
+    if (!naturezaPermitida(campos.naturezaOperacao)) {
+      validacoes.push({
+        numeroNF: campos.numeroNF,
+        tipo: 'NATUREZA_REJEITADA',
+        erro: `Natureza da operação "${campos.naturezaOperacao || 'não encontrada'}" não é permitida para registro.`,
+        valor: campos.naturezaOperacao || 'não encontrada'
+      })
+      continue
+    }
+    if (campos.cfop) {
+      const validacaoCFOP = validarCFOP(campos.cfop)
+      if (!validacaoCFOP.valido) {
+        validacoes.push({
+          numeroNF: campos.numeroNF,
+          tipo: 'CFOP_REJEITADO',
+          erro: `CFOP ${campos.cfop} não refere-se a uma nota fiscal de venda. ${validacaoCFOP.erro}. Favor verificar a NF ${campos.numeroNF}.`,
+          valor: campos.cfop
+        })
+        continue
+      }
+    }
+
     const dataEntregaCalculada = calcularDataEntrega(campos.dataEmissao, campos.horaSaida);
     const diasAtraso = calcularDiasAtraso(campos.dataVencimento);
     const diasVencimento = calcularDiasVencimento(campos.dataVencimento);
@@ -1216,10 +1241,31 @@ app.post('/processar', upload.single('file'), async (req, res) => {
         
         // Status e controle
         situacao: situacao,
-        status: 'PENDENTE'
+      status: 'PENDENTE'
       };
 
-      // Inserir registro individual no Supabase
+      if (!naturezaPermitida(registroIndividual.natureza_operacao)) {
+        validacoes.push({
+          numeroNF: registroIndividual.numero_nf,
+          tipo: 'NATUREZA_REJEITADA',
+          erro: `Natureza da operação "${registroIndividual.natureza_operacao || 'não encontrada'}" não é permitida para registro.`,
+          valor: registroIndividual.natureza_operacao || 'não encontrada'
+        })
+        continue
+      }
+      if (registroIndividual.cfop) {
+        const validCFOP = validarCFOP(registroIndividual.cfop)
+        if (!validCFOP.valido) {
+          validacoes.push({
+            numeroNF: registroIndividual.numero_nf,
+            tipo: 'CFOP_REJEITADO',
+            erro: `CFOP ${registroIndividual.cfop} não refere-se a uma nota fiscal de venda. ${validCFOP.erro}. Favor verificar a NF ${registroIndividual.numero_nf}.`,
+            valor: registroIndividual.cfop
+          })
+          continue
+        }
+      }
+
        console.log('Inserindo registro no Supabase...');
        const { data: registroSalvo, error: erroRegistro } = await supabase
          .from('registros')
@@ -1275,37 +1321,7 @@ app.post('/processar', upload.single('file'), async (req, res) => {
        console.error('Erro ao processar registro individual:', error);
      }
     
-    // Validar natureza da operação - REJEITAR REGISTRO SE NÃO CONTÉM REVENDA OU VENDA
-    if (!campos.naturezaOperacao || 
-        (!campos.naturezaOperacao.toUpperCase().includes('REVENDA') && 
-         !campos.naturezaOperacao.toUpperCase().includes('VENDA'))) {
-      console.error(`❌ NATUREZA DA OPERAÇÃO INVÁLIDA - NF ${campos.numeroNF}: ${campos.naturezaOperacao || 'não encontrada'}`);
-      validacoes.push({
-        numeroNF: campos.numeroNF,
-        tipo: 'NATUREZA_REJEITADA',
-        erro: `Natureza da operação "${campos.naturezaOperacao || 'não encontrada'}" não contém REVENDA ou VENDA. Favor verificar a NF ${campos.numeroNF}.`,
-        valor: campos.naturezaOperacao || 'não encontrada'
-      });
-      // Pular este registro - não processar
-      continue;
-    }
     
-    // Validar CFOP se presente - REJEITAR REGISTRO SE INVÁLIDO
-    if (campos.cfop) {
-      const validacaoCFOP = validarCFOP(campos.cfop);
-      if (!validacaoCFOP.valido) {
-        console.error(`❌ CFOP INVÁLIDO - NF ${campos.numeroNF}: ${validacaoCFOP.erro}`);
-        validacoes.push({
-          numeroNF: campos.numeroNF,
-          tipo: 'CFOP_REJEITADO',
-          erro: `CFOP ${campos.cfop} não refere-se a uma nota fiscal de venda. ${validacaoCFOP.erro}. Favor verificar a NF ${campos.numeroNF}.`,
-          valor: campos.cfop
-        });
-        // Pular este registro - não processar
-        continue;
-      }
-    }
-    // Se não tem CFOP, continua processando (CFOP é opcional)
     
     // Nome do arquivo com a nova ordem solicitada
     // Formato: NF - [Número] - [Emitente] - Emiss [Data] - [Nome Fantasia] - [Razão Social] - [Valor] - [Placa] - [Fretista] - Venc [Data]
@@ -1613,7 +1629,7 @@ app.post('/processar', upload.single('file'), async (req, res) => {
 });
 
 // Novo endpoint: processar múltiplos PDFs em lote
-app.post('/processar-multiplos', upload.array('files', 20), async (req, res) => {
+app.post('/processar-multiplos', upload.array('files', 100), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'Nenhum arquivo enviado.' })
@@ -1651,6 +1667,10 @@ app.post('/processar-multiplos', upload.array('files', 20), async (req, res) => 
       }
 
       const numPages = pdfDoc.getPageCount()
+      if (numPages > 200) {
+        resultados.push({ arquivo: originalname, erro: 'Arquivo excede 200 páginas', registrosSalvos: 0, duplicatas: [], validacoes: [{ tipo: 'LIMITE_PAGINAS', erro: 'Cada PDF deve ter no máximo 200 páginas' }] })
+        continue
+      }
       const paginasPorNF = {}
       const textosPorNF = {}
       const validacoes = []
@@ -1678,6 +1698,27 @@ app.post('/processar-multiplos', upload.array('files', 20), async (req, res) => 
       for (const numeroNF in paginasPorNF) {
         try {
           const campos = extrairCamposNota(textosPorNF[numeroNF][0])
+          if (!naturezaPermitida(campos.naturezaOperacao)) {
+            validacoes.push({
+              numeroNF: campos.numeroNF,
+              tipo: 'NATUREZA_REJEITADA',
+              erro: `Natureza da operação "${campos.naturezaOperacao || 'não encontrada'}" não é permitida para registro.`,
+              valor: campos.naturezaOperacao || 'não encontrada'
+            })
+            continue
+          }
+          if (campos.cfop) {
+            const validacaoCFOP = validarCFOP(campos.cfop)
+            if (!validacaoCFOP.valido) {
+              validacoes.push({
+                numeroNF: campos.numeroNF,
+                tipo: 'CFOP_REJEITADO',
+                erro: `CFOP ${campos.cfop} não refere-se a uma nota fiscal de venda. ${validacaoCFOP.erro}. Favor verificar a NF ${campos.numeroNF}.`,
+                valor: campos.cfop
+              })
+              continue
+            }
+          }
 
           const dataEntregaCalculada = calcularDataEntrega(campos.dataEmissao, campos.horaSaida)
           // Dias de atraso/vencimento calculados se necessário
@@ -1781,6 +1822,28 @@ app.post('/processar-multiplos', upload.array('files', 20), async (req, res) => 
               status: 'PENDENTE'
             }
 
+            if (!naturezaPermitida(registroIndividual.natureza_operacao)) {
+              validacoes.push({
+                numeroNF: registroIndividual.numero_nf,
+                tipo: 'NATUREZA_REJEITADA',
+                erro: `Natureza da operação "${registroIndividual.natureza_operacao || 'não encontrada'}" não é permitida para registro.`,
+                valor: registroIndividual.natureza_operacao || 'não encontrada'
+              })
+              continue
+            }
+            if (registroIndividual.cfop) {
+              const validCFOP = validarCFOP(registroIndividual.cfop)
+              if (!validCFOP.valido) {
+                validacoes.push({
+                  numeroNF: registroIndividual.numero_nf,
+                  tipo: 'CFOP_REJEITADO',
+                  erro: `CFOP ${registroIndividual.cfop} não refere-se a uma nota fiscal de venda. ${validCFOP.erro}. Favor verificar a NF ${registroIndividual.numero_nf}.`,
+                  valor: registroIndividual.cfop
+                })
+                continue
+              }
+            }
+
             const { data: registroSalvo, error: erroRegistro } = await supabase
               .from('registros')
               .insert([registroIndividual])
@@ -1829,28 +1892,7 @@ app.post('/processar-multiplos', upload.array('files', 20), async (req, res) => 
             console.error('Erro ao processar registro individual:', error)
           }
 
-          // Validações (mesmo padrão do /processar)
-          if (!campos.naturezaOperacao || (!campos.naturezaOperacao.toUpperCase().includes('REVENDA') && !campos.naturezaOperacao.toUpperCase().includes('VENDA'))) {
-            validacoes.push({
-              numeroNF: campos.numeroNF,
-              tipo: 'NATUREZA_REJEITADA',
-              erro: `Natureza da operação "${campos.naturezaOperacao || 'não encontrada'}" não contém REVENDA ou VENDA. Favor verificar a NF ${campos.numeroNF}.`,
-              valor: campos.naturezaOperacao || 'não encontrada'
-            })
-            continue
-          }
-          if (campos.cfop) {
-            const validacaoCFOP = validarCFOP(campos.cfop)
-            if (!validacaoCFOP.valido) {
-              validacoes.push({
-                numeroNF: campos.numeroNF,
-                tipo: 'CFOP_REJEITADO',
-                erro: `CFOP ${campos.cfop} não refere-se a uma nota fiscal de venda. ${validacaoCFOP.erro}. Favor verificar a NF ${campos.numeroNF}.`,
-                valor: campos.cfop
-              })
-              continue
-            }
-          }
+          
 
           // Construir nome do arquivo, replicando lógica do endpoint único
           let nomeArquivo = `NF`
@@ -1944,15 +1986,16 @@ app.post('/processar-multiplos', upload.array('files', 20), async (req, res) => 
         }
       }
 
-      resultados.push({
-        arquivo: originalname,
-        registrosSalvos,
-        duplicatas,
-        validacoes
-      })
-      totalRegistrosSalvos += registrosSalvos
-      totalDuplicatas += duplicatas.length
-      totalValidacoes += validacoes.length
+    resultados.push({
+      arquivo: originalname,
+      registrosSalvos,
+      duplicatas,
+      validacoes
+    })
+    totalRegistrosSalvos += registrosSalvos
+    totalDuplicatas += duplicatas.length
+    totalValidacoes += validacoes.length
+    await new Promise(resolve => setTimeout(resolve, 2000))
     }
 
     // Persistir últimos dados processados para permitir downloads
@@ -2157,7 +2200,13 @@ app.post('/registrar-nota', async (req, res) => {
       });
     }
 
-    // Verificar se a nota fiscal já existe no banco de dados (apenas por número da NF)
+    if (!naturezaPermitida(natureza_operacao)) {
+      return res.status(400).json({
+        error: 'Natureza da operação não permitida para registro',
+        detalhes: natureza_operacao || 'não informada'
+      })
+    }
+
     const { data: notaExistente, error: errorVerificacao } = await supabase
       .from('registros')
       .select('numero_nf')
@@ -3677,3 +3726,37 @@ app.get('/api/test-sheets', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`)
 })
+function normalizarTexto(s) {
+  return String(s || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+function naturezaPermitida(natureza) {
+  const n = normalizarTexto(natureza)
+  if (!n) return false
+  const proibidos = [
+    'TRANSFERENCIA', 'BONIFICACAO', 'BONIFICA', 'DEVOLUCAO', 'DEV', 'DEVOL', 'PERDA', 'PERDAS',
+    'OUTRAS', 'OUTRAS SAIDAS', 'REMESSA', 'REM', 'COMPRA', 'COMPRAS'
+  ]
+  for (const p of proibidos) {
+    const pn = normalizarTexto(p)
+    if (n.includes(pn)) return false
+  }
+  const allowedPhrases = [
+    'REVENDA',
+    'VENDA',
+    'REVENDA DE MERCADORIA',
+    'VENDA DE MERCADORIA',
+    'REVENDA MERCADORIA',
+    'VENDA MERCADORIA'
+  ]
+  for (const t of allowedPhrases) {
+    const tn = normalizarTexto(t)
+    if (n.includes(tn)) return true
+  }
+  return false
+}

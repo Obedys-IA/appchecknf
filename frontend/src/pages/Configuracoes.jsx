@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Checkbox } from '../components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Settings, Database, Mail, FileText, Save, Upload } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSystemStats, createBackup, exportEmitentesToSupabase, exportClientesToSupabase } from '../lib/supabase';
@@ -201,7 +203,7 @@ const Configuracoes = () => {
         className="bg-white/80 backdrop-blur-sm"
       />
       <div className="flex justify-end">
-        <Button onClick={salvarConfiguracoes} disabled={loading} className="btn btn-green">
+        <Button onClick={salvarConfiguracoes} disabled={loading}>
           <Save className="w-4 h-4 mr-2" />
           {loading ? 'Salvando...' : 'Salvar Configurações'}
         </Button>
@@ -264,26 +266,28 @@ const Configuracoes = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Formato de Exportação Padrão</label>
-              <select
-                className="w-full px-3 py-2 border rounded-md"
+              <Select
                 value={configuracoes.formatoArquivo}
-                onChange={(e) => handleConfigChange('formatoArquivo', e.target.value)}
+                onValueChange={(value) => handleConfigChange('formatoArquivo', value)}
               >
-                <option value="excel">Excel (.xlsx)</option>
-                <option value="csv">CSV (.csv)</option>
-                <option value="json">JSON (.json)</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o formato" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="excel">Excel (.xlsx)</SelectItem>
+                  <SelectItem value="csv">CSV (.csv)</SelectItem>
+                  <SelectItem value="json">JSON (.json)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+              <Checkbox
                 id="incluirCabecalho"
                 checked={configuracoes.incluirCabecalho}
-                onChange={(e) => handleConfigChange('incluirCabecalho', e.target.checked)}
-                className="rounded"
+                onCheckedChange={(checked) => handleConfigChange('incluirCabecalho', !!checked)}
               />
               <label htmlFor="incluirCabecalho" className="text-sm font-medium text-gray-700">
                 Incluir cabeçalho nos arquivos exportados
@@ -291,12 +295,10 @@ const Configuracoes = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+              <Checkbox
                 id="separarPorFretista"
                 checked={configuracoes.separarPorFretista}
-                onChange={(e) => handleConfigChange('separarPorFretista', e.target.checked)}
-                className="rounded"
+                onCheckedChange={(checked) => handleConfigChange('separarPorFretista', !!checked)}
               />
               <label htmlFor="separarPorFretista" className="text-sm font-medium text-gray-700">
                 Separar arquivos por fretista automaticamente
@@ -319,12 +321,10 @@ const Configuracoes = () => {
         </CardHeader>
         <CardContent className="p-6 space-y-3">
           <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="notificarProcessamento"
               checked={configuracoes.notificarProcessamento}
-              onChange={(e) => handleConfigChange('notificarProcessamento', e.target.checked)}
-              className="rounded"
+              onCheckedChange={(checked) => handleConfigChange('notificarProcessamento', !!checked)}
             />
             <label htmlFor="notificarProcessamento" className="text-sm font-medium text-gray-700">
               Notificar quando o processamento de PDFs for concluído
@@ -332,12 +332,10 @@ const Configuracoes = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="notificarErros"
               checked={configuracoes.notificarErros}
-              onChange={(e) => handleConfigChange('notificarErros', e.target.checked)}
-              className="rounded"
+              onCheckedChange={(checked) => handleConfigChange('notificarErros', !!checked)}
             />
             <label htmlFor="notificarErros" className="text-sm font-medium text-gray-700">
               Notificar quando ocorrerem erros no sistema
@@ -345,12 +343,10 @@ const Configuracoes = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="notificarNovoUsuario"
               checked={configuracoes.notificarNovoUsuario}
-              onChange={(e) => handleConfigChange('notificarNovoUsuario', e.target.checked)}
-              className="rounded"
+              onCheckedChange={(checked) => handleConfigChange('notificarNovoUsuario', !!checked)}
             />
             <label htmlFor="notificarNovoUsuario" className="text-sm font-medium text-gray-700">
               Notificar quando novos usuários se registrarem
@@ -441,12 +437,10 @@ const Configuracoes = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+              <Checkbox
                 id="backupAutomatico"
                 checked={configuracoes.backupAutomatico}
-                onChange={(e) => handleConfigChange('backupAutomatico', e.target.checked)}
-                className="rounded"
+                onCheckedChange={(checked) => handleConfigChange('backupAutomatico', !!checked)}
               />
               <label htmlFor="backupAutomatico" className="text-sm font-medium text-gray-700">
                 Ativar backup automático
@@ -457,15 +451,19 @@ const Configuracoes = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Frequência do Backup</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-md"
+                  <Select
                     value={configuracoes.frequenciaBackup}
-                    onChange={(e) => handleConfigChange('frequenciaBackup', e.target.value)}
+                    onValueChange={(value) => handleConfigChange('frequenciaBackup', value)}
                   >
-                    <option value="diario">Diário</option>
-                    <option value="semanal">Semanal</option>
-                    <option value="mensal">Mensal</option>
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione a frequência" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="diario">Diário</SelectItem>
+                      <SelectItem value="semanal">Semanal</SelectItem>
+                      <SelectItem value="mensal">Mensal</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -485,7 +483,6 @@ const Configuracoes = () => {
               <Button
                 onClick={realizarBackup}
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700"
               >
                 <Database className="w-4 h-4 mr-2" />
                 Criar Backup Manual
